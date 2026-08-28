@@ -1,0 +1,17 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Minimal placeholder model to satisfy Prisma Client generator
+// No business entities will be added until later blocks.
+model Placeholder {
+  id Int @id
+}
