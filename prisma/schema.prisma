@@ -10,8 +10,98 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Minimal placeholder model to satisfy Prisma Client generator
-// No business entities will be added until later blocks.
-model Placeholder {
-  id Int @id
+model ContactInquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  context   String?
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  role          String         @default("CLIENT") // "COACH" or "CLIENT"
+  emailVerified Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  coachProfile  CoachProfile?
+  
+  coachConnections CoachClientConnection[] @relation("CoachConnections")
+  clientConnections CoachClientConnection[] @relation("ClientConnections")
+  
+  clientProfile ClientProfile?
+}
+
+model CoachProfile {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  businessName          String?
+  bio                   String?
+  specialties           String[]  // Array of strings (e.g., "YOGA", "STRENGTH")
+  credentials           String?
+  profilePhoto          String?   // Path or URL to the photo
+  timezone              String    @default("UTC")
+  
+  onboardingCompleted   Boolean   @default(false)
+  onboardingCompletedAt DateTime?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model ClientProfile {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  goal                  String?
+  currentWeight         Float?
+  targetWeight          Float?
+  preferredWeightUnit   String    @default("kg")
+  height                Float?
+  targetDate            DateTime?
+  profilePhoto          String?
+  
+  onboardingCompleted   Boolean   @default(false)
+  onboardingCompletedAt DateTime?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model CoachClientConnection {
+  id                    String    @id @default(cuid())
+  
+  coachId               String
+  coach                 User      @relation("CoachConnections", fields: [coachId], references: [id], onDelete: Cascade)
+  
+  clientId              String?
+  client                User?     @relation("ClientConnections", fields: [clientId], references: [id], onDelete: SetNull)
+  
+  invitedEmail          String
+  invitedName           String?
+  personalMessage       String?
+  
+  invitationToken       String    @unique
+  invitationTokenExpiry DateTime
+  status                String    @default("PENDING") // PENDING, ACTIVE, CANCELLED, ENDED
+  
+  invitedAt             DateTime  @default(now())
+  acceptedAt            DateTime?
+  endedAt               DateTime?
+  endedByUserId         String?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([coachId])
+  @@index([clientId])
+  @@index([invitedEmail])
 }
