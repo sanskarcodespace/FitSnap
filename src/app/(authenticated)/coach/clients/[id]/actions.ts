@@ -100,3 +100,43 @@ export async function fetchCoachNutritionHistory(clientId: string, startDate: st
 
   return summary;
 }
+
+import { getWeightHistory, getMeasurementHistory, MeasurementType } from "@/lib/progress/history"
+
+export async function fetchCoachWeightHistory(clientId: string, startDateStr: string, endDateStr: string) {
+  const token = (await cookies()).get("session_token")?.value
+  if (!token) throw new Error("Unauthorized")
+  
+  const session = await verifyToken(token)
+  if (!session || session.role !== "COACH") throw new Error("Unauthorized")
+
+  // The connection scoping rule from Block 15 says "client-owned activity data (food logs, water logs) belongs to the client forever". 
+  // Wait, Weight and Measurements are also client-owned activity data. But coaches should only see it if they have an active connection.
+  const connection = await prisma.coachClientConnection.findFirst({
+    where: { coachId: session.userId, clientId, status: "ACTIVE" }
+  })
+  
+  if (!connection) {
+    throw new Error("You do not have an active connection with this client.")
+  }
+
+  return getWeightHistory(clientId, startDateStr, endDateStr)
+}
+
+export async function fetchCoachMeasurementHistory(clientId: string, type: MeasurementType, startDateStr: string, endDateStr: string) {
+  const token = (await cookies()).get("session_token")?.value
+  if (!token) throw new Error("Unauthorized")
+  
+  const session = await verifyToken(token)
+  if (!session || session.role !== "COACH") throw new Error("Unauthorized")
+
+  const connection = await prisma.coachClientConnection.findFirst({
+    where: { coachId: session.userId, clientId, status: "ACTIVE" }
+  })
+  
+  if (!connection) {
+    throw new Error("You do not have an active connection with this client.")
+  }
+
+  return getMeasurementHistory(clientId, type, startDateStr, endDateStr)
+}

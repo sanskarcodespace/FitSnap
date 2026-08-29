@@ -15,6 +15,10 @@ import { getDailyNutritionSummary } from "@/lib/data/nutrition"
 import { CoachFoodHistoryTab } from "./CoachFoodHistoryTab"
 import { CoachDietTab } from "./CoachDietTab"
 import { CoachWorkoutTab } from "./CoachWorkoutTab"
+import { CoachYogaTab } from "./CoachYogaTab"
+import { CoachCheckinsTab } from "./CoachCheckinsTab"
+import { CoachProgressTab } from "./CoachProgressTab"
+import { CoachHabitsTab } from "./CoachHabitsTab"
 
 const GOALS: Record<string, string> = {
   "WEIGHT_LOSS": "Weight Loss",
@@ -66,6 +70,23 @@ export default async function ClientDetailPage({
           },
           guidelines: true
         }
+      },
+      yogaPlans: {
+        include: {
+          sequences: {
+            include: {
+              poses: true
+            }
+          },
+          guidelines: true
+        }
+      },
+      habitPlans: {
+        include: {
+          items: true,
+          guidelines: true
+        },
+        orderBy: { createdAt: 'desc' }
       }
     }
   })
@@ -87,11 +108,29 @@ export default async function ClientDetailPage({
   const dateToUse = queryDate > todayStr ? todayStr : queryDate
   const summary = await getDailyNutritionSummary(connection.clientId || "", dateToUse, session.userId)
 
+  const mostRecentWeight = await prisma.weightEntry.findFirst({
+    where: { clientId: connection.clientId || "" },
+    orderBy: { date: 'desc' }
+  })
+
   // Fetch recent workout logs
   const recentWorkoutLogs = await prisma.workoutLog.findMany({
     where: { clientId: connection.clientId || "" },
     orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     take: 10
+  });
+
+  // Fetch recent yoga logs
+  const recentYogaLogs = await prisma.yogaLog.findMany({
+    where: { clientId: connection.clientId || "" },
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+    take: 10
+  });
+
+  // Fetch client habit completions (FULL history per connection scope rule)
+  const habitCompletions = await prisma.habitCompletion.findMany({
+    where: { clientId: connection.clientId || "" },
+    orderBy: { date: 'desc' }
   });
 
   return (
@@ -157,7 +196,7 @@ export default async function ClientDetailPage({
                       </div>
                       <div>
                         <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Current Weight</p>
-                        <p className="font-medium mt-1">{profile.currentWeight ? `${profile.currentWeight} ${profile.preferredWeightUnit}` : "Not set"}</p>
+                        <p className="font-medium mt-1">{(mostRecentWeight?.weightValue ?? profile.currentWeight) ? `${mostRecentWeight?.weightValue ?? profile.currentWeight} ${profile.preferredWeightUnit}` : "Not set"}</p>
                       </div>
                       <div>
                         <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Target Weight</p>
@@ -224,9 +263,14 @@ export default async function ClientDetailPage({
                     <Link 
                       href={`/coach/clients/${connection.id}?date=${
                         (() => {
-                          const prev = new Date(dateToUse);
-                          prev.setDate(prev.getDate() - 1);
-                          return prev.toISOString().split('T')[0];
+                          // Parse as local date to avoid UTC offset shifting the day
+                          const [y, mo, d] = dateToUse.split('-').map(Number)
+                          const prev = new Date(y, mo - 1, d)
+                          prev.setDate(prev.getDate() - 1)
+                          const py = prev.getFullYear()
+                          const pm = String(prev.getMonth() + 1).padStart(2, '0')
+                          const pd = String(prev.getDate()).padStart(2, '0')
+                          return `${py}-${pm}-${pd}`
                         })()
                       }#nutrition`}
                       className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-900)]"
@@ -246,9 +290,14 @@ export default async function ClientDetailPage({
                       <Link 
                         href={`/coach/clients/${connection.id}?date=${
                           (() => {
-                            const next = new Date(dateToUse);
-                            next.setDate(next.getDate() + 1);
-                            return next.toISOString().split('T')[0];
+                            // Parse as local date to avoid UTC offset shifting the day
+                            const [y, mo, d] = dateToUse.split('-').map(Number)
+                            const next = new Date(y, mo - 1, d)
+                            next.setDate(next.getDate() + 1)
+                            const ny = next.getFullYear()
+                            const nm = String(next.getMonth() + 1).padStart(2, '0')
+                            const nd = String(next.getDate()).padStart(2, '0')
+                            return `${ny}-${nm}-${nd}`
                           })()
                         }#nutrition`}
                         className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-900)]"
@@ -301,45 +350,44 @@ export default async function ClientDetailPage({
             </TabsContent>
             
             <TabsContent value="yoga">
-              <Card>
-                <CardContent className="pt-6">
-                  <EmptyState 
-                    icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-                    title="Yoga plans are coming soon" 
-                    description="The ability to assign structured yoga plans will be available in Block 17." 
-                  />
-                </CardContent>
-              </Card>
+              {!isActive ? (
+                <EmptyState 
+                  icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
+                  title="Not connected" 
+                  description="Yoga plans can only be managed for active clients." 
+                />
+              ) : (
+                <CoachYogaTab connectionId={connection.id} yogaPlans={connection.yogaPlans as any} recentLogs={recentYogaLogs} />
+              )}
             </TabsContent>
           </Tabs>
         </TabsContent>
 
         <TabsContent value="habits" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Habits</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EmptyState 
-                icon={<CheckSquare className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-                title="Habits Coming Soon" 
-                description="Daily habit tracking will be built in Block 18." 
-              />
-            </CardContent>
-          </Card>
+          <CoachHabitsTab 
+            connectionId={connection.id} 
+            clientId={connection.clientId || ""} 
+            habitPlans={connection.habitPlans as any} 
+            completions={habitCompletions.map(c => ({
+              id: c.id,
+              habitPlanItemId: c.habitPlanItemId,
+              habitNameSnapshot: c.habitNameSnapshot,
+              date: c.date,
+              note: c.note
+            }))} 
+          />
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Weight & Photos</CardTitle>
+              <CardTitle className="text-xl">Weight & Measurements</CardTitle>
+              <CardDescription>
+                View your client's weight logs and body measurements.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <EmptyState 
-                icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-                title="Progress Coming Soon" 
-                description="Weight tracking charts and progress photo galleries will be available in Block 20." 
-              />
+              <CoachProgressTab clientId={connection.clientId || ""} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -347,14 +395,21 @@ export default async function ClientDetailPage({
         <TabsContent value="checkins" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Check-ins & Reports</CardTitle>
+              <CardTitle className="text-xl">Daily Check-ins</CardTitle>
+              <CardDescription>
+                View your client's daily sleep, steps, mood, and energy history.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <EmptyState 
-                icon={<FileText className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-                title="Check-ins Coming Soon" 
-                description="Weekly check-in forms and progress reports will be available in future blocks." 
-              />
+              {!isActive ? (
+                <EmptyState 
+                  icon={<FileText className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
+                  title="Not connected" 
+                  description="Check-ins can only be viewed for active clients." 
+                />
+              ) : (
+                <CoachCheckinsTab clientId={connection.clientId || ""} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

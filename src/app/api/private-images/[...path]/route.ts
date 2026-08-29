@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ path:
 
     const [folder, clientId, filename] = params.path
 
-    if (folder !== "food" && folder !== "temp") {
+    if (folder !== "food" && folder !== "temp" && folder !== "progress") {
       return new NextResponse("Not Found", { status: 404 })
     }
 

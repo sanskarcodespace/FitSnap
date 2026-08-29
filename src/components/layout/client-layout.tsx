@@ -138,7 +138,7 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--color-neutral-200)] bg-white safe-area-pb">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--color-neutral-200)] bg-white safe-area-pb">
         <div className="flex items-center justify-around h-16">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { getDailyNutritionSummary } from "@/lib/data/nutrition"
 import { ProgressRing, ProgressBar } from "@/components/ui/progress"
+import { DashboardHabitsCard } from "./DashboardHabitsCard"
+import { DashboardCheckinCard } from "./DashboardCheckinCard"
 
 export default async function ClientHomePage() {
   const token = (await cookies()).get("session_token")?.value
@@ -34,20 +36,68 @@ export default async function ClientHomePage() {
         include: { coachProfile: true }
       },
       dietPlans: {
-        where: { status: "ACTIVE" }
+        orderBy: { createdAt: 'desc' }
       },
       workoutPlans: {
-        where: { status: "ACTIVE" }
+        orderBy: { createdAt: 'desc' }
+      },
+      yogaPlans: {
+        orderBy: { createdAt: 'desc' }
+      },
+      habitPlans: {
+        where: { status: "ACTIVE" },
+        include: {
+          items: {
+            where: { status: "active" },
+            orderBy: { sortOrder: 'asc' }
+          }
+        }
       }
     }
   })
 
-  // Get first name for greeting from email
-  const firstName = profile.user.email.split("@")[0] || "Client"
-  
+  const activeHabitPlan = activeConnection?.habitPlans[0] || null;
+
   // Format today's date
   const todayDateObj = new Date()
-  const todayStr = todayDateObj.toISOString().split('T')[0]
+  const tzOffset = todayDateObj.getTimezoneOffset() * 60000;
+  const todayStr = new Date(todayDateObj.getTime() - tzOffset).toISOString().split('T')[0]
+
+  // Fetch today's habit completions
+  const todayCompletions = activeHabitPlan
+    ? await prisma.habitCompletion.findMany({
+        where: {
+          clientId: session.userId,
+          date: todayStr,
+          habitPlanItemId: {
+            in: activeHabitPlan.items.map(item => item.id)
+          }
+        }
+      })
+    : [];
+
+  // Fetch today's checkin
+  const todayCheckIn = await prisma.dailyCheckIn.findUnique({
+    where: {
+      clientId_date: {
+        clientId: session.userId,
+        date: todayStr
+      }
+    }
+  })
+
+  // Calculate has-ever-had flags and active plans
+  const hasEverHadDiet = activeConnection ? activeConnection.dietPlans.length > 0 : false;
+  const hasEverHadWorkout = activeConnection ? activeConnection.workoutPlans.length > 0 : false;
+  const hasEverHadYoga = activeConnection ? activeConnection.yogaPlans.length > 0 : false;
+  const hasEverHadAnyPlan = hasEverHadDiet || hasEverHadWorkout || hasEverHadYoga;
+
+  const activeDiet = activeConnection?.dietPlans.find(p => p.status === "ACTIVE");
+  const activeWorkout = activeConnection?.workoutPlans.find(p => p.status === "ACTIVE");
+  const activeYoga = activeConnection?.yogaPlans.find(p => p.status === "ACTIVE");
+
+  // Get first name for greeting from email
+  const firstName = profile.user.email.split("@")[0] || "Client"
   
   const todayFormatted = todayDateObj.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -57,6 +107,12 @@ export default async function ClientHomePage() {
 
   // Fetch today's summary
   const summary = await getDailyNutritionSummary(session.userId, todayStr)
+
+  // Fetch most recent weight entry
+  const mostRecentWeight = await prisma.weightEntry.findFirst({
+    where: { clientId: session.userId },
+    orderBy: { date: 'desc' }
+  })
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -85,7 +141,7 @@ export default async function ClientHomePage() {
           <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
             <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)]">
               <p className="text-xs text-[var(--color-neutral-500)] mb-1">Current Weight</p>
-              <p className="font-bold text-lg">{profile.currentWeight} {profile.preferredWeightUnit}</p>
+              <p className="font-bold text-lg">{mostRecentWeight?.weightValue ?? profile.currentWeight} {profile.preferredWeightUnit}</p>
             </div>
             <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)]">
               <p className="text-xs text-[var(--color-neutral-500)] mb-1">Target</p>
@@ -93,9 +149,14 @@ export default async function ClientHomePage() {
             </div>
           </div>
           
-          <Button variant="secondary" className="w-full" asChild>
-            <Link href="/client/progress">View Progress</Link>
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" className="w-1/2" asChild>
+              <Link href="/client/progress">View Progress</Link>
+            </Button>
+            <Button variant="secondary" className="w-1/2" asChild>
+              <Link href="/client/progress">Log Weight</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Food & Nutrition Card */}
@@ -166,48 +227,82 @@ export default async function ClientHomePage() {
         {/* Today's Plan Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
           <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Plan</h2>
-          {activeConnection && (activeConnection.dietPlans.length > 0 || activeConnection.workoutPlans.length > 0) ? (
+          {!activeConnection ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
+              <p className="text-sm text-[var(--color-neutral-500)] px-4 mb-4">You are not currently connected to a coach.</p>
+            </div>
+          ) : !hasEverHadAnyPlan ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
+              <p className="text-sm text-[var(--color-neutral-500)] px-4 mb-4">Your coach hasn't set up your plan yet.</p>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/client/plan">View Plans Tab</Link>
+              </Button>
+            </div>
+          ) : (
             <div className="flex-1 flex flex-col gap-4">
-              {activeConnection.dietPlans.length > 0 && (
+              {hasEverHadDiet && (
                 <div className="bg-[var(--color-neutral-50)] rounded-lg p-4 border border-[var(--color-neutral-100)] flex-1">
-                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">ACTIVE DIET PLAN</p>
-                  <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeConnection.dietPlans[0].title}</p>
-                  <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
-                    {activeConnection.dietPlans[0].overview || "View details for meal guidance and rules."}
-                  </p>
+                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">DIET PLAN</p>
+                  {activeDiet ? (
+                    <>
+                      <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeDiet.title}</p>
+                      <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
+                        {activeDiet.overview || "View details for meal guidance and rules."}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[var(--color-neutral-500)] mt-1">No active diet plan.</p>
+                  )}
                 </div>
               )}
-              {activeConnection.workoutPlans.length > 0 && (
+              {hasEverHadWorkout && (
                 <div className="bg-[var(--color-neutral-50)] rounded-lg p-4 border border-[var(--color-neutral-100)] flex-1">
-                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">ACTIVE WORKOUT PLAN</p>
-                  <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeConnection.workoutPlans[0].title}</p>
-                  <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
-                    {activeConnection.workoutPlans[0].overview || "View details for your workout sessions."}
-                  </p>
+                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">WORKOUT PLAN</p>
+                  {activeWorkout ? (
+                    <>
+                      <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeWorkout.title}</p>
+                      <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
+                        {activeWorkout.overview || "View details for your workout sessions."}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[var(--color-neutral-500)] mt-1">No active workout plan.</p>
+                  )}
+                </div>
+              )}
+              {hasEverHadYoga && (
+                <div className="bg-[var(--color-neutral-50)] rounded-lg p-4 border border-[var(--color-neutral-100)] flex-1">
+                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">YOGA PLAN</p>
+                  {activeYoga ? (
+                    <>
+                      <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeYoga.title}</p>
+                      <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
+                        {activeYoga.overview || "View details for your yoga sequences."}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[var(--color-neutral-500)] mt-1">No active yoga plan.</p>
+                  )}
                 </div>
               )}
               <Button variant="secondary" className="w-full mt-auto" asChild>
                 <Link href="/client/plan">View Full Plans</Link>
               </Button>
             </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
-              <p className="text-sm text-[var(--color-neutral-500)] px-4 mb-4">Your workout, yoga, and diet plans will appear here.</p>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/client/plan">View Plans Tab</Link>
-              </Button>
-            </div>
           )}
         </section>
 
         {/* Habits Card */}
-        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Habits</h2>
-          <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
-            <p className="text-sm text-[var(--color-neutral-500)] px-4">Habit tracking is coming soon.</p>
-          </div>
-        </section>
+        <DashboardHabitsCard
+          habitItems={activeHabitPlan?.items || []}
+          initialCompletions={todayCompletions}
+          isConnected={!!activeConnection}
+          hasPlan={!!activeHabitPlan}
+        />
         
+        {/* Check-ins Card */}
+        <DashboardCheckinCard todayCheckIn={todayCheckIn} />
+
         {/* Your Coach Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] md:col-span-2">
           <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Your Coach</h2>

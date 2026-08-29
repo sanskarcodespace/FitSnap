@@ -62,6 +62,25 @@ export async function upsertClientProfile(data: {
       update: payload
     })
 
+    // Seed weight entry if onboarding was just completed and current weight exists
+    if (data.onboardingCompleted && payload.onboardingCompletedAt && data.currentWeight) {
+      const existingWeightEntries = await prisma.weightEntry.count({
+        where: { clientId: session.userId }
+      });
+      if (existingWeightEntries === 0) {
+        await prisma.weightEntry.create({
+          data: {
+            clientId: session.userId,
+            date: payload.onboardingCompletedAt,
+            weightValue: data.currentWeight,
+            weightUnit: data.preferredWeightUnit || "kg",
+            note: "Onboarding baseline",
+            createdAt: payload.onboardingCompletedAt
+          }
+        });
+      }
+    }
+
     revalidatePath("/client")
     return { success: true }
   } catch (error: any) {

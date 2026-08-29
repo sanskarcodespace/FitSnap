@@ -106,7 +106,8 @@ export function CoachFoodHistoryTab({ clientId }: { clientId: string }) {
       case "protein": return data.targets.protein
       case "carbs": return data.targets.carbs
       case "fat": return data.targets.fat
-      case "water": return data.targets.waterLiters
+      // Chart data for water is in ml, target is in liters — convert to match
+      case "water": return data.targets.waterLiters * 1000
     }
   }
 
@@ -243,12 +244,12 @@ export function CoachFoodHistoryTab({ clientId }: { clientId: string }) {
 
             {!data.hasActiveConnection && (
               <p className="text-xs text-center text-[var(--color-neutral-500)] mt-2">
-                You are currently disconnected from your coach. Your historical data is shown without a target line.
+                This client is not currently in an active connection. Historical data is shown without a target reference line.
               </p>
             )}
             {data.hasActiveConnection && !data.hasTarget && (
               <p className="text-xs text-center text-[var(--color-neutral-500)] mt-2">
-                No target is currently set by your coach.
+                No nutrition target has been set for this client yet.
               </p>
             )}
 

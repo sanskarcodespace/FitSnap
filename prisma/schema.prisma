@@ -38,6 +38,12 @@ model User {
   meals         MealLog[]       @relation("ClientMeals")
   waterLogs     WaterLogEntry[] @relation("ClientWater")
   workouts      WorkoutLog[]    @relation("ClientWorkouts")
+  yogaLogs         YogaLog[]              @relation("ClientYogaLogs")
+  weightEntries    WeightEntry[]          @relation("ClientWeight")
+  bodyMeasurements BodyMeasurementEntry[] @relation("ClientBodyMeasurements")
+  progressPhotos   ProgressPhotoEntry[]   @relation("ClientProgressPhotos")
+  habitCompletions HabitCompletion[]      @relation("ClientHabitCompletions")
+  checkIns      DailyCheckIn[] @relation("ClientCheckIns")
 }
 
 model CoachProfile {
@@ -66,8 +72,9 @@ model ClientProfile {
 
   goal                String?
   currentWeight       Float?
-  targetWeight        Float?
-  preferredWeightUnit String    @default("kg")
+  targetWeight             Float?
+  preferredWeightUnit      String    @default("kg")
+  preferredMeasurementUnit String    @default("cm")
   height              Float?
   targetDate          DateTime?
   profilePhoto        String?
@@ -107,6 +114,8 @@ model CoachClientConnection {
   nutritionTarget NutritionTarget?
   dietPlans       DietPlan[]
   workoutPlans    WorkoutPlan[]
+  yogaPlans       YogaPlan[]
+  habitPlans      HabitPlan[]           @relation("ConnectionHabitPlans")
 
   @@index([coachId])
   @@index([clientId])
@@ -298,4 +307,208 @@ model WorkoutLog {
 
   @@index([clientId])
   @@index([date])
+}
+
+model YogaPlan {
+  id                      String                @id @default(cuid())
+  coachClientConnectionId String
+  connection              CoachClientConnection @relation(fields: [coachClientConnectionId], references: [id], onDelete: Cascade)
+
+  title    String
+  overview String?
+  status   String  @default("ACTIVE") // "ACTIVE" | "ARCHIVED"
+
+  sequences  YogaPlanSequence[]
+  guidelines YogaPlanGuideline[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
+
+  @@index([coachClientConnectionId])
+}
+
+model YogaPlanSequence {
+  id               String   @id @default(cuid())
+  yogaPlanId       String
+  yogaPlan         YogaPlan @relation(fields: [yogaPlanId], references: [id], onDelete: Cascade)
+
+  name             String
+  description      String?
+  style            String?  // "Hatha" | "Vinyasa" | "Yin" | "Restorative" | "Power" | "Other"
+  durationGuidance String?
+  sortOrder        Int
+
+  poses            YogaPlanPose[]
+
+  @@index([yogaPlanId])
+}
+
+model YogaPlanPose {
+  id                 String           @id @default(cuid())
+  yogaPlanSequenceId String
+  yogaPlanSequence   YogaPlanSequence @relation(fields: [yogaPlanSequenceId], references: [id], onDelete: Cascade)
+
+  name               String
+  holdOrRepGuidance  String?
+  notes              String?
+  sortOrder          Int
+
+  @@index([yogaPlanSequenceId])
+}
+
+model YogaPlanGuideline {
+  id         String   @id @default(cuid())
+  yogaPlanId String
+  yogaPlan   YogaPlan @relation(fields: [yogaPlanId], references: [id], onDelete: Cascade)
+
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([yogaPlanId])
+}
+
+model YogaLog {
+  id       String @id @default(cuid())
+  clientId String
+  client   User   @relation("ClientYogaLogs", fields: [clientId], references: [id], onDelete: Cascade)
+
+  date                     String // YYYY-MM-DD
+  title                    String
+  style                    String // "Hatha" | "Vinyasa" | "Yin" | "Restorative" | "Power" | "Other"
+  durationMinutes          Int?
+  notes                    String?
+  source                   String @default("custom") // "plan" | "custom"
+  linkedYogaPlanSequenceId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([date])
+}
+
+model WeightEntry {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      User     @relation("ClientWeight", fields: [clientId], references: [id], onDelete: Cascade)
+  date        DateTime // YYYY-MM-DD representing the log date
+  weightValue Float
+  weightUnit  String
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([clientId])
+  @@index([date])
+}
+
+model BodyMeasurementEntry {
+  id              String   @id @default(cuid())
+  clientId        String
+  client          User     @relation("ClientBodyMeasurements", fields: [clientId], references: [id], onDelete: Cascade)
+  date            DateTime // YYYY-MM-DD representing the log date
+  waistValue      Float?
+  chestValue      Float?
+  hipsValue       Float?
+  armsValue       Float?
+  thighsValue     Float?
+  measurementUnit String
+  note            String?
+  createdAt       DateTime @default(now())
+
+  @@index([clientId])
+  @@index([date])
+}
+
+model ProgressPhotoEntry {
+  id             String   @id @default(cuid())
+  clientId       String
+  client         User     @relation("ClientProgressPhotos", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  date           String // YYYY-MM-DD
+  photoReference String // Path to securely stored private image
+  angle          String? // "Front" | "Side" | "Back" | "Other"
+  note           String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([date])
+}
+
+model HabitPlan {
+  id                      String               @id @default(cuid())
+  coachClientConnectionId String
+  connection              CoachClientConnection @relation("ConnectionHabitPlans", fields: [coachClientConnectionId], references: [id], onDelete: Cascade)
+  title                   String
+  overview                String?
+  status                  String               // "ACTIVE" | "ARCHIVED"
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  archivedAt              DateTime?
+
+  items                   HabitPlanItem[]
+  guidelines              HabitPlanGuideline[]
+
+  @@index([coachClientConnectionId])
+}
+
+model HabitPlanItem {
+  id                  String            @id @default(cuid())
+  habitPlanId         String
+  habitPlan           HabitPlan         @relation(fields: [habitPlanId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
+  targetFrequency     String            // "Daily" | "TimesPerWeek" | "NoSpecificTarget"
+  targetTimesPerWeek  Int?
+  sortOrder           Int
+  status              String            // "active" | "removed"
+
+  completions         HabitCompletion[]
+
+  @@index([habitPlanId])
+}
+
+model HabitPlanGuideline {
+  id          String    @id @default(cuid())
+  habitPlanId String
+  habitPlan   HabitPlan @relation(fields: [habitPlanId], references: [id], onDelete: Cascade)
+  text        String
+  createdAt   DateTime  @default(now())
+
+  @@index([habitPlanId])
+}
+
+model HabitCompletion {
+  id                 String        @id @default(cuid())
+  clientId           String
+  client             User          @relation("ClientHabitCompletions", fields: [clientId], references: [id], onDelete: Cascade)
+  habitPlanItemId    String
+  habitPlanItem      HabitPlanItem @relation(fields: [habitPlanItemId], references: [id], onDelete: Cascade)
+  habitNameSnapshot  String
+  date               String        // YYYY-MM-DD
+  note               String?
+  createdAt          DateTime      @default(now())
+
+  @@index([clientId])
+  @@index([habitPlanItemId])
+  @@index([date])
+}
+
+model DailyCheckIn {
+  id         String   @id @default(cuid())
+  clientId   String
+  date       String   // YYYY-MM-DD
+  sleepHours Float?
+  steps      Int?
+  mood       Int?     // 1-5
+  energy     Int?     // 1-5
+  note       String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  client     User     @relation("ClientCheckIns", fields: [clientId], references: [id])
+
+  @@unique([clientId, date])
 }

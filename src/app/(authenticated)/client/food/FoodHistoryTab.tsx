@@ -106,7 +106,8 @@ export function FoodHistoryTab() {
       case "protein": return data.targets.protein
       case "carbs": return data.targets.carbs
       case "fat": return data.targets.fat
-      case "water": return data.targets.waterLiters
+      // Chart data for water is in ml, target is in liters — convert to match
+      case "water": return data.targets.waterLiters * 1000
     }
   }
 

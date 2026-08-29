@@ -15,6 +15,7 @@ export interface TrendChartProps {
   height?: number;
   className?: string;
   yAxisLabel?: string;
+  fixedYAxisRange?: [number, number];
 }
 
 export function TrendChart({
@@ -23,7 +24,8 @@ export function TrendChart({
   metricColor = "var(--color-primary-500)",
   height = 240,
   className = "",
-  yAxisLabel
+  yAxisLabel,
+  fixedYAxisRange
 }: TrendChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -54,11 +56,19 @@ export function TrendChart({
   const validValues = data.filter(d => d.isLogged).map(d => d.value);
   const maxDataValue = validValues.length > 0 ? Math.max(...validValues) : 0;
   const maxValue = Math.max(maxDataValue, referenceLine || 0);
-  // Add 10% buffer to top so line doesn't hit the ceiling
-  const yMax = maxValue === 0 ? 100 : maxValue * 1.1;
+  
+  let yMin = 0;
+  let yMax = maxValue === 0 ? 100 : maxValue * 1.1;
+
+  if (fixedYAxisRange) {
+    yMin = fixedYAxisRange[0];
+    yMax = fixedYAxisRange[1];
+  }
+
+  const yRange = yMax - yMin;
 
   const getX = (index: number) => padding.left + (data.length > 1 ? (index / (data.length - 1)) * chartWidth : chartWidth / 2);
-  const getY = (value: number) => padding.top + chartHeight - (value / yMax) * chartHeight;
+  const getY = (value: number) => padding.top + chartHeight - ((value - yMin) / (yRange === 0 ? 1 : yRange)) * chartHeight;
 
   // Build Path (skipping gap days to create breaks)
   let pathD = "";
@@ -91,7 +101,7 @@ export function TrendChart({
           {/* Y-Axis Guidelines & Labels (0, 50%, 100%) */}
           {[0, 0.5, 1].map(ratio => {
             const y = padding.top + chartHeight - (chartHeight * ratio);
-            const val = Math.round(yMax * ratio);
+            const val = fixedYAxisRange ? Math.round(yMin + (yRange * ratio)) : Math.round(yMax * ratio);
             return (
               <g key={`y-axis-${ratio}`}>
                 <line 

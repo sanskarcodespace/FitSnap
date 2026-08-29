@@ -8,6 +8,7 @@ import { Dumbbell, Activity } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ClientDietTab } from "./ClientDietTab"
 import { ClientWorkoutTab } from "./ClientWorkoutTab"
+import { ClientYogaTab } from "./ClientYogaTab"
 
 export default async function ClientPlanPage() {
   const token = (await cookies()).get("session_token")?.value
@@ -39,10 +40,28 @@ export default async function ClientPlanPage() {
               guidelines: true
             },
             orderBy: { createdAt: 'desc' }
+          },
+          yogaPlans: {
+            include: {
+              sequences: {
+                include: {
+                  poses: true
+                }
+              },
+              guidelines: true
+            },
+            orderBy: { createdAt: 'desc' }
           }
         }
       },
       workouts: {
+        orderBy: [
+          { date: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        take: 50
+      },
+      yogaLogs: {
         orderBy: [
           { date: 'desc' },
           { createdAt: 'desc' }
@@ -89,15 +108,11 @@ export default async function ClientPlanPage() {
         </TabsContent>
         
         <TabsContent value="yoga">
-          <Card>
-            <CardContent className="pt-6">
-              <EmptyState 
-                icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-                title="Yoga plans are coming soon" 
-                description="The ability to receive structured yoga plans will be available in Block 17." 
-              />
-            </CardContent>
-          </Card>
+          <ClientYogaTab 
+            yogaPlans={activeConnection?.yogaPlans || []}
+            isConnected={isConnected}
+            yogaLogs={user.yogaLogs}
+          />
         </TabsContent>
       </Tabs>
     </div>

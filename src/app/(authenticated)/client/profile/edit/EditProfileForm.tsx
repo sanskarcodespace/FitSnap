@@ -69,9 +69,6 @@ export function EditProfileForm({ profile }: { profile: any }) {
     setLoading(true)
 
     try {
-      if (!currentWeight || parseFloat(currentWeight) <= 0) {
-        throw new Error("Current weight must be valid.")
-      }
       if (isWeightBased && (!targetWeight || parseFloat(targetWeight) <= 0)) {
         throw new Error("Target weight must be valid for your goal.")
       }
@@ -92,7 +89,6 @@ export function EditProfileForm({ profile }: { profile: any }) {
 
       const payload: any = {
         goal,
-        currentWeight: parseFloat(currentWeight),
         preferredWeightUnit: unit,
         targetWeight: isWeightBased && targetWeight ? parseFloat(targetWeight) : null,
         height: height ? parseFloat(height) : null,
@@ -147,22 +143,14 @@ export function EditProfileForm({ profile }: { profile: any }) {
 
         <div className="flex gap-4">
           <div className="space-y-2 flex-1">
-            <Label htmlFor="currentWeight">Current Weight</Label>
-            <Input 
-              id="currentWeight" 
-              type="number" 
-              step="0.1" 
-              value={currentWeight}
-              onChange={e => setCurrentWeight(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2 w-24">
-            <Label htmlFor="unit">Unit</Label>
+            <Label htmlFor="unit">Preferred Weight Unit</Label>
             <Select id="unit" value={unit} onChange={e => handleUnitChange(e.target.value)}>
               <option value="kg">kg</option>
               <option value="lb">lb</option>
             </Select>
+            <p className="text-xs text-[var(--color-neutral-500)]">
+              Weight logs can be managed in the Progress tab.
+            </p>
           </div>
         </div>
 

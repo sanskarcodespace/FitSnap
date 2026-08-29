@@ -26,24 +26,34 @@ export function FoodLogClient({
   const [editingMeal, setEditingMeal] = useState<any>(null)
 
   // Date Navigation
-  const currentDateObj = new Date(date)
-  
-  // To avoid timezone issues when manipulating just the date string part
+  // Parse date as local to avoid UTC-offset issues ("2026-08-30" via new Date() is UTC midnight)
+  const parseDateLocal = (dateStr: string) => {
+    const [y, m, d] = dateStr.split('-').map(Number)
+    return new Date(y, m - 1, d)
+  }
+
   const handlePrevDay = () => {
-    const prev = new Date(currentDateObj)
+    const prev = parseDateLocal(date)
     prev.setDate(prev.getDate() - 1)
-    router.push(`/client/food?date=${prev.toISOString().split('T')[0]}`)
+    const y = prev.getFullYear()
+    const m = String(prev.getMonth() + 1).padStart(2, '0')
+    const d = String(prev.getDate()).padStart(2, '0')
+    router.push(`/client/food?date=${y}-${m}-${d}`)
   }
 
   const handleNextDay = () => {
-    const next = new Date(currentDateObj)
+    const next = parseDateLocal(date)
     next.setDate(next.getDate() + 1)
-    
+    const y = next.getFullYear()
+    const m = String(next.getMonth() + 1).padStart(2, '0')
+    const d = String(next.getDate()).padStart(2, '0')
+    const nextStr = `${y}-${m}-${d}`
+
     // Prevent future dates
     const todayStr = new Date().toISOString().split('T')[0]
-    if (next.toISOString().split('T')[0] > todayStr) return
+    if (nextStr > todayStr) return
 
-    router.push(`/client/food?date=${next.toISOString().split('T')[0]}`)
+    router.push(`/client/food?date=${nextStr}`)
   }
 
   const todayStr = new Date().toISOString().split('T')[0]
