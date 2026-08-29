@@ -5,7 +5,7 @@ import prisma from "@/lib/db/prisma"
 import { ClientOnboardingForm } from "./ClientOnboardingForm"
 
 export default async function ClientOnboardingPage() {
-  const token = cookies().get("session_token")?.value
+  const token = (await cookies()).get("session_token")?.value
   if (!token) redirect("/login")
   
   const session = await verifyToken(token)

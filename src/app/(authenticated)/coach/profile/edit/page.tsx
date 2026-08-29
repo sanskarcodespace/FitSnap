@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import { EditProfileForm } from "./edit-profile-form"
 
 export default async function EditProfilePage() {
-  const token = cookies().get("session_token")?.value
+  const token = (await cookies()).get("session_token")?.value
   if (!token) redirect("/login")
   
   const session = await verifyToken(token)

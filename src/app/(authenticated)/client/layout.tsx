@@ -2,13 +2,13 @@ import prisma from "@/lib/db/prisma"
 import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth/jwt"
 import { redirect } from "next/navigation"
-import { CoachLayout } from "@/components/layout/coach-layout"
+import { ClientLayout } from "@/components/layout/client-layout"
 
-export default async function CoachLayoutWrapper({ children }: { children: React.ReactNode }) {
+export default async function ClientRouteLayout({ children }: { children: React.ReactNode }) {
   const token = (await cookies()).get("session_token")?.value
   let user = null
   let profilePhoto = undefined
-  let name = "Coach"
+  let name = "Client"
   let onboardingCompleted = false
 
   if (token) {
@@ -16,13 +16,13 @@ export default async function CoachLayoutWrapper({ children }: { children: React
     if (session) {
       const dbUser = await prisma.user.findUnique({
         where: { id: session.userId },
-        include: { coachProfile: true }
+        include: { clientProfile: true }
       })
       if (dbUser) {
         user = dbUser
-        name = dbUser.coachProfile?.businessName || dbUser.email
-        profilePhoto = dbUser.coachProfile?.profilePhoto || undefined
-        onboardingCompleted = dbUser.coachProfile?.onboardingCompleted || false
+        name = dbUser.email.split("@")[0] || dbUser.email
+        profilePhoto = dbUser.clientProfile?.profilePhoto || undefined
+        onboardingCompleted = dbUser.clientProfile?.onboardingCompleted || false
       }
     }
   }
@@ -33,24 +33,24 @@ export default async function CoachLayoutWrapper({ children }: { children: React
     redirect("/login")
   }
 
+  // If onboarding is not completed, we do NOT want to show the full dashboard navigation shell.
+  // The onboarding page itself will render its own centered layout.
   if (!onboardingCompleted) {
     return <>{children}</>
   }
 
   return (
-    <CoachLayout 
+    <ClientLayout 
       onLogout={handleLogout}
       user={user ? {
         name,
-        email: user.email,
         avatarUrl: profilePhoto
       } : {
-        name: "Coach",
-        email: "",
+        name: "Client",
         avatarUrl: undefined
       }}
     >
       {children}
-    </CoachLayout>
+    </ClientLayout>
   )
 }

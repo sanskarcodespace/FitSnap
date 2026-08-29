@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/db/prisma"
 import { cookies } from "next/headers"
-import { createSession } from "@/lib/auth/jwt"
+import { signToken } from "@/lib/auth/jwt"
 import { redirect } from "next/navigation"
 import bcrypt from "bcryptjs"
 
@@ -62,8 +62,8 @@ export async function acceptInvitationSignup(formData: FormData) {
     })
 
     // Log the user in
-    const sessionToken = await createSession({ userId: newUser.id, role: newUser.role })
-    cookies().set("session_token", sessionToken, {
+    const sessionToken = await signToken({ userId: newUser.id, role: newUser.role })
+    ;(await cookies()).set("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -133,8 +133,8 @@ export async function acceptInvitationLogin(formData: FormData) {
     })
 
     // Log the user in
-    const sessionToken = await createSession({ userId: user.id, role: user.role })
-    cookies().set("session_token", sessionToken, {
+    const sessionToken = await signToken({ userId: user.id, role: user.role })
+    ;(await cookies()).set("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -151,7 +151,7 @@ export async function acceptInvitationLogin(formData: FormData) {
 }
 
 export async function logoutAction() {
-  cookies().delete("session_token")
+  (await cookies()).delete("session_token")
   // Keep the user on the current page to refresh and see the logged-out state
   redirect(process.env.NEXT_PUBLIC_APP_URL || "/")
 }

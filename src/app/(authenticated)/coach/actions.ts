@@ -7,7 +7,7 @@ import crypto from "crypto"
 import { revalidatePath } from "next/cache"
 
 async function getSession() {
-  const token = cookies().get("session_token")?.value
+  const token = (await cookies()).get("session_token")?.value
   if (!token) throw new Error("Not authenticated")
   
   const session = await verifyToken(token)

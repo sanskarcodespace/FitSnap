@@ -7,6 +7,7 @@ export interface UploadOptions {
   maxHeight?: number
   quality?: number
   folder?: string
+  private?: boolean
 }
 
 export async function processAndStoreImage(file: File, options: UploadOptions = {}): Promise<string> {
@@ -14,7 +15,8 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
     maxWidth = 800,
     maxHeight = 800,
     quality = 80,
-    folder = "profiles"
+    folder = "profiles",
+    private: isPrivate = false
   } = options
 
   // Validate it's an image by MIME type initially
@@ -42,7 +44,8 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
       .toBuffer()
 
     // Ensure directory exists
-    const uploadDir = path.join(process.cwd(), "public", "uploads", folder)
+    const baseDir = isPrivate ? path.join(process.cwd(), "private", "uploads") : path.join(process.cwd(), "public", "uploads")
+    const uploadDir = path.join(baseDir, folder)
     await fs.mkdir(uploadDir, { recursive: true })
 
     // Generate unique filename
@@ -52,8 +55,8 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
     // Write file
     await fs.writeFile(filePath, processedBuffer)
 
-    // Return the public URL path
-    return `/uploads/${folder}/${filename}`
+    // Return the URL path
+    return isPrivate ? `/api/private-images/${folder}/${filename}` : `/uploads/${folder}/${filename}`
   } catch (error) {
     console.error("Image processing error:", error)
     throw new Error("Failed to process image. The file may be corrupted or not a valid image.")

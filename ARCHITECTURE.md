@@ -29,6 +29,16 @@ The `currentWeight` captured during onboarding is a baseline starting weight. It
 **Design Decision: Preferred Weight Unit**
 The `preferredWeightUnit` (kg/lb) captured on the client profile acts as the global standing convention for all future weight-based features.
 
+## Client Navigation Architecture
+The client-side navigation structure is permanently fixed as the following top-level routes. Future feature blocks must build into these routes rather than inventing their own structural layout:
+- **Dashboard (`/client`)**: The primary summary view (Greeting, Progress snippet, Your Coach snippet, and feature snippets).
+- **Food (`/client/food`)**: Nutrition logging (Block 10-13).
+- **Plan (`/client/plan`)**: Workout, Yoga, and Diet plans (Block 15-17).
+- **Progress (`/client/progress`)**: Weight history and measurements (Block 18).
+- **Habits (`/client/habits`)**: Habit tracking (Block 20).
+- **Messages (`/client/messages`)**: Coach communication (Block 27).
+- **Profile (`/client/profile/edit`)**: Accessed via the top-bar Avatar menu.
+
 ## Definition of Done (DoD)
 - Code compiles without TypeScript errors.
 - ESLint passes.

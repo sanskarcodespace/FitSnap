@@ -7,7 +7,7 @@ import { verifyToken } from "@/lib/auth/jwt"
 import { redirect } from "next/navigation"
 
 async function getSession() {
-  const token = cookies().get("session_token")?.value
+  const token = (await cookies()).get("session_token")?.value
   if (!token) return null
   return verifyToken(token)
 }

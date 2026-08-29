@@ -5,9 +5,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Alert } from "@/components/ui/alert"
 import { InviteSignupForm, InviteLoginForm, LogoutButton } from "./ClientAcceptanceForms"
 
-export default async function InviteAcceptancePage({ params }: { params: { token: string } }) {
+export default async function InviteAcceptancePage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const token = params.token
-  
+
   // 1. Validate connection token
   const connection = await prisma.coachClientConnection.findUnique({
     where: { invitationToken: token },
@@ -42,7 +43,7 @@ export default async function InviteAcceptancePage({ params }: { params: { token
   const coachName = connection.coach.coachProfile?.businessName || "Your Coach"
 
   // 2. Check Session
-  const sessionToken = cookies().get("session_token")?.value
+  const sessionToken = (await cookies()).get("session_token")?.value
   let session = null
   if (sessionToken) {
     try {

@@ -35,7 +35,7 @@ export async function signup(formData: FormData) {
     const token = await signToken({ userId: user.id, role: user.role })
     
     // Set cookie
-    cookies().set("session_token", token, {
+    ;(await cookies()).set("session_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

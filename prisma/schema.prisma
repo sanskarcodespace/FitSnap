@@ -35,6 +35,8 @@ model User {
   clientConnections CoachClientConnection[] @relation("ClientConnections")
   
   clientProfile ClientProfile?
+  meals         MealLog[] @relation("ClientMeals")
+  waterLogs     WaterLogEntry[] @relation("ClientWater")
 }
 
 model CoachProfile {
@@ -101,7 +103,77 @@ model CoachClientConnection {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  nutritionTarget       NutritionTarget?
+
   @@index([coachId])
   @@index([clientId])
   @@index([invitedEmail])
+}
+
+model NutritionTarget {
+  id                    String    @id @default(cuid())
+  connectionId          String    @unique
+  connection            CoachClientConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  
+  calorieTarget         Int
+  proteinTargetGrams    Int
+  carbTargetGrams       Int
+  fatTargetGrams        Int
+  waterTargetLiters     Float
+  fiberTargetGrams      Int?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model MealLog {
+  id                    String    @id @default(cuid())
+  clientId              String
+  client                User      @relation("ClientMeals", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  date                  String    // Stored as YYYY-MM-DD for easy querying without timezone shifts
+  mealType              String    // "Breakfast", "Lunch", "Dinner", "Snack"
+  source                String    @default("manual") // Extensibility point for future AI
+  photoReference        String?   // Path to securely stored private image
+
+  foodItems             FoodItem[]
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([clientId])
+  @@index([date])
+}
+
+model FoodItem {
+  id                    String    @id @default(cuid())
+  mealLogId             String
+  mealLog               MealLog   @relation(fields: [mealLogId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  portionDescription    String?
+  originType            String    @default("manual") // "manual" | "ai_detected"
+  
+  calories              Int
+  proteinGrams          Int       @default(0)
+  carbGrams             Int       @default(0)
+  fatGrams              Int       @default(0)
+  fiberGrams            Int       @default(0)
+  sugarGrams            Int?
+  sodiumMg              Int?
+
+  @@index([mealLogId])
+}
+
+model WaterLogEntry {
+  id                    String    @id @default(cuid())
+  clientId              String
+  client                User      @relation("ClientWater", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  date                  String    // YYYY-MM-DD
+  amountMl              Int
+  loggedAt              DateTime  @default(now())
+
+  @@index([clientId])
+  @@index([date])
 }

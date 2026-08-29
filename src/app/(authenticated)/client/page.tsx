@@ -2,12 +2,11 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth/jwt"
 import prisma from "@/lib/db/prisma"
-import { ClientLayout } from "@/components/layout/client-layout"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default async function ClientHomePage() {
-  const token = cookies().get("session_token")?.value
+  const token = (await cookies()).get("session_token")?.value
   if (!token) redirect("/login")
   
   const session = await verifyToken(token)
@@ -25,76 +24,164 @@ export default async function ClientHomePage() {
   // Fetch active coach connection
   const activeConnection = await prisma.coachClientConnection.findFirst({
     where: {
-      clientEmail: profile.user.email,
+      invitedEmail: profile.user.email,
       status: "ACTIVE"
     },
     include: {
       coach: {
-        include: { user: true }
+        include: { coachProfile: true }
       }
     }
   })
 
+  // Get first name for greeting from email
+  const firstName = profile.user.email.split("@")[0] || "Client"
+  
+  // Format today's date
+  const todayDateObj = new Date()
+  const todayStr = todayDateObj.toISOString().split('T')[0]
+  
+  const todayFormatted = todayDateObj.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  })
+
+  // Fetch today's food and water
+  const todayMeals = await prisma.mealLog.findMany({
+    where: { clientId: session.userId, date: todayStr },
+    include: { foodItems: true }
+  })
+  
+  const todayWater = await prisma.waterLogEntry.aggregate({
+    where: { clientId: session.userId, date: todayStr },
+    _sum: { amountMl: true }
+  })
+
+  let todayCalories = 0
+  todayMeals.forEach(m => {
+    m.foodItems.forEach(i => todayCalories += i.calories)
+  })
+  const totalWater = todayWater._sum.amountMl || 0
+
   return (
-    <ClientLayout 
-      header={<div className="font-bold text-lg">My Dashboard</div>}
-      bottomNav={<div className="text-sm text-center text-[var(--color-neutral-500)] py-2 border-t">Navigation coming soon</div>}
-    >
-      <div className="space-y-6">
-        {/* Profile Card */}
-        <section className="bg-white rounded-xl p-4 shadow-sm border border-[var(--color-neutral-200)] flex items-center gap-4">
-          {profile.profilePhoto ? (
-            <img src={profile.profilePhoto} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center text-[var(--color-neutral-400)] text-xs">
-              No Photo
-            </div>
-          )}
-          <div className="flex-1">
-            <h2 className="font-bold text-[var(--text-h3-size)]">{profile.user.name || "Client"}</h2>
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)]">{profile.goal}</p>
+    <div className="space-y-6 max-w-3xl mx-auto">
+      {/* Greeting Header */}
+      <div className="pb-2">
+        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+          Hi, {firstName}
+        </h1>
+        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+          {todayFormatted}
+        </p>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Progress Card */}
+        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">Progress</h2>
+            <span className="bg-[var(--color-secondary-100)] text-[var(--color-secondary-700)] text-xs font-semibold px-2 py-1 rounded-full">
+              {profile.goal}
+            </span>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/client/profile/edit">Edit</Link>
+          
+          <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
+            <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)]">
+              <p className="text-xs text-[var(--color-neutral-500)] mb-1">Current Weight</p>
+              <p className="font-bold text-lg">{profile.currentWeight} {profile.preferredWeightUnit}</p>
+            </div>
+            <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)]">
+              <p className="text-xs text-[var(--color-neutral-500)] mb-1">Target</p>
+              <p className="font-bold text-lg">{profile.targetWeight ? `${profile.targetWeight} ${profile.preferredWeightUnit}` : "-"}</p>
+            </div>
+          </div>
+          
+          <Button variant="secondary" className="w-full" asChild>
+            <Link href="/client/progress">View Progress</Link>
           </Button>
         </section>
 
-        {/* Coach Section */}
-        <section className="bg-white rounded-xl p-4 shadow-sm border border-[var(--color-neutral-200)]">
-          <h3 className="font-bold mb-3 border-b border-[var(--color-neutral-100)] pb-2 text-[var(--color-neutral-700)]">Your Coach</h3>
-          {activeConnection && activeConnection.coach ? (
-            <div className="flex items-center gap-3">
-              {activeConnection.coach.profilePhoto ? (
-                <img src={activeConnection.coach.profilePhoto} alt="Coach" className="w-12 h-12 rounded-full object-cover" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center text-[var(--color-neutral-400)] text-xs">
-                  No Photo
-                </div>
-              )}
-              <div>
-                <p className="font-medium">{activeConnection.coach.businessName || activeConnection.coach.user.name || "Your Coach"}</p>
-                <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">Connected</p>
+        {/* Food & Nutrition Card */}
+        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
+          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Food & Nutrition</h2>
+          {todayMeals.length === 0 && totalWater === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-secondary-50)] text-[var(--color-secondary-500)] flex items-center justify-center mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M18.5 15.5 12 22l-6.5-6.5a8.48 8.48 0 0 1 0-12 8.48 8.48 0 0 1 13 0"/></svg>
               </div>
+              <p className="text-sm font-medium text-[var(--color-neutral-700)] mb-1">Nothing logged yet</p>
+              <p className="text-xs text-[var(--color-neutral-500)] mb-4">Log your first meal or water today.</p>
+              <Button asChild>
+                <Link href="/client/food">Log Food or Water</Link>
+              </Button>
             </div>
           ) : (
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">
-              You are not currently connected to a coach. Check your email for an invitation link if you are expecting one.
-            </p>
+            <div className="flex-1 flex flex-col">
+              <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
+                <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)] flex flex-col justify-center">
+                  <p className="text-xs text-[var(--color-neutral-500)] mb-1">Calories Logged</p>
+                  <p className="font-bold text-lg text-[var(--color-neutral-800)]">{todayCalories} kcal</p>
+                </div>
+                <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)] flex flex-col justify-center">
+                  <p className="text-xs text-[var(--color-neutral-500)] mb-1">Water Logged</p>
+                  <p className="font-bold text-lg text-[var(--color-primary-700)]">{totalWater} ml</p>
+                </div>
+              </div>
+              <Button variant="secondary" className="w-full" asChild>
+                <Link href="/client/food">View Details & Log</Link>
+              </Button>
+            </div>
           )}
         </section>
 
-        {/* Quick Stats Placeholder */}
-        <section className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--color-neutral-200)]">
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">Current Weight</p>
-            <p className="font-bold text-xl">{profile.currentWeight} {profile.preferredWeightUnit}</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-[var(--color-neutral-200)]">
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">Target</p>
-            <p className="font-bold text-xl">{profile.targetWeight ? `${profile.targetWeight} ${profile.preferredWeightUnit}` : "-"}</p>
+        {/* Today's Plan Card */}
+        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
+          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Plan</h2>
+          <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
+            <p className="text-sm text-[var(--color-neutral-500)] px-4">Your workout, yoga, and diet plans will appear here.</p>
           </div>
         </section>
+
+        {/* Habits Card */}
+        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
+          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Habits</h2>
+          <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
+            <p className="text-sm text-[var(--color-neutral-500)] px-4">Habit tracking is coming soon.</p>
+          </div>
+        </section>
+        
+        {/* Your Coach Card */}
+        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] md:col-span-2">
+          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Your Coach</h2>
+          {activeConnection && activeConnection.coach ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {activeConnection.coach.coachProfile?.profilePhoto ? (
+                  <img src={activeConnection.coach.coachProfile.profilePhoto} alt="Coach" className="w-12 h-12 rounded-full object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center text-[var(--color-neutral-400)] text-xs font-bold">
+                    C
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium text-[var(--color-neutral-800)]">{activeConnection.coach.coachProfile?.businessName || activeConnection.coach.email}</p>
+                  <p className="text-xs text-[var(--color-secondary-600)] font-medium">Connected</p>
+                </div>
+              </div>
+              <Button disabled variant="secondary" size="sm">Message</Button>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-[var(--color-neutral-500)]">
+                You are not currently connected to a coach. Check your email for an invitation link if you are expecting one.
+              </p>
+            </div>
+          )}
+        </section>
       </div>
-    </ClientLayout>
+    </div>
   )
 }
