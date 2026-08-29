@@ -32,6 +32,12 @@ export default async function ClientHomePage() {
     include: {
       coach: {
         include: { coachProfile: true }
+      },
+      dietPlans: {
+        where: { status: "ACTIVE" }
+      },
+      workoutPlans: {
+        where: { status: "ACTIVE" }
       }
     }
   })
@@ -160,9 +166,38 @@ export default async function ClientHomePage() {
         {/* Today's Plan Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
           <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Plan</h2>
-          <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
-            <p className="text-sm text-[var(--color-neutral-500)] px-4">Your workout, yoga, and diet plans will appear here.</p>
-          </div>
+          {activeConnection && (activeConnection.dietPlans.length > 0 || activeConnection.workoutPlans.length > 0) ? (
+            <div className="flex-1 flex flex-col gap-4">
+              {activeConnection.dietPlans.length > 0 && (
+                <div className="bg-[var(--color-neutral-50)] rounded-lg p-4 border border-[var(--color-neutral-100)] flex-1">
+                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">ACTIVE DIET PLAN</p>
+                  <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeConnection.dietPlans[0].title}</p>
+                  <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
+                    {activeConnection.dietPlans[0].overview || "View details for meal guidance and rules."}
+                  </p>
+                </div>
+              )}
+              {activeConnection.workoutPlans.length > 0 && (
+                <div className="bg-[var(--color-neutral-50)] rounded-lg p-4 border border-[var(--color-neutral-100)] flex-1">
+                  <p className="text-xs font-semibold text-[var(--color-primary-600)] mb-1">ACTIVE WORKOUT PLAN</p>
+                  <p className="font-bold text-lg text-[var(--color-neutral-900)] truncate">{activeConnection.workoutPlans[0].title}</p>
+                  <p className="text-sm text-[var(--color-neutral-600)] mt-2 line-clamp-2">
+                    {activeConnection.workoutPlans[0].overview || "View details for your workout sessions."}
+                  </p>
+                </div>
+              )}
+              <Button variant="secondary" className="w-full mt-auto" asChild>
+                <Link href="/client/plan">View Full Plans</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
+              <p className="text-sm text-[var(--color-neutral-500)] px-4 mb-4">Your workout, yoga, and diet plans will appear here.</p>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/client/plan">View Plans Tab</Link>
+              </Button>
+            </div>
+          )}
         </section>
 
         {/* Habits Card */}

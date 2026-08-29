@@ -13,6 +13,8 @@ import { DailyFoodLogView } from "@/components/food/DailyFoodLogView"
 import Link from "next/link"
 import { getDailyNutritionSummary } from "@/lib/data/nutrition"
 import { CoachFoodHistoryTab } from "./CoachFoodHistoryTab"
+import { CoachDietTab } from "./CoachDietTab"
+import { CoachWorkoutTab } from "./CoachWorkoutTab"
 
 const GOALS: Record<string, string> = {
   "WEIGHT_LOSS": "Weight Loss",
@@ -23,29 +25,48 @@ const GOALS: Record<string, string> = {
   "GENERAL_HEALTH": "General Health"
 }
 
-export default async function ClientDetailPage(
-  props: { 
-    params: Promise<{ id: string }>,
-    searchParams: Promise<{ date?: string }>
-  }
-) {
-  const searchParams = await props.searchParams;
-  const params = await props.params;
-  const token = (await cookies()).get("session_token")?.value
-  if (!token) redirect("/login")
+export default async function ClientDetailPage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await params;
+  const connectionId = resolvedParams.id;
+  const resolvedSearchParams = await searchParams;
+  
+  const token = (await cookies()).get("session_token")?.value;
+  if (!token) redirect("/login");
 
-  const session = await verifyToken(token)
-  if (!session || session.role !== "COACH") redirect("/login")
+  const session = await verifyToken(token);
+  if (!session || session.role !== "COACH") redirect("/login");
 
   const connection = await prisma.coachClientConnection.findUnique({
-    where: { id: params.id },
+    where: { id: connectionId },
     include: {
       client: {
         include: {
           clientProfile: true
         }
       },
-      nutritionTarget: true
+      nutritionTarget: true,
+      dietPlans: {
+        include: {
+          mealGuidance: true,
+          guidelines: true,
+        }
+      },
+      workoutPlans: {
+        include: {
+          sessions: {
+            include: {
+              exercises: true
+            }
+          },
+          guidelines: true
+        }
+      }
     }
   })
 
@@ -53,6 +74,8 @@ export default async function ClientDetailPage(
   if (!connection || connection.coachId !== session.userId || connection.status !== "ACTIVE") {
     redirect("/coach")
   }
+  
+  const isActive = connection.status === "ACTIVE";
 
   const clientName = connection.client?.email?.split('@')[0] || "Client"
   const profile = connection.client?.clientProfile
@@ -60,9 +83,16 @@ export default async function ClientDetailPage(
 
   // Date Logic for Food History
   const todayStr = new Date().toISOString().split('T')[0]
-  const queryDate = searchParams.date || todayStr
+  const queryDate = typeof resolvedSearchParams.date === 'string' ? resolvedSearchParams.date : todayStr
   const dateToUse = queryDate > todayStr ? todayStr : queryDate
   const summary = await getDailyNutritionSummary(connection.clientId || "", dateToUse, session.userId)
+
+  // Fetch recent workout logs
+  const recentWorkoutLogs = await prisma.workoutLog.findMany({
+    where: { clientId: connection.clientId || "" },
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+    take: 10
+  });
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
@@ -244,18 +274,44 @@ export default async function ClientDetailPage(
         </TabsContent>
 
         <TabsContent value="plans" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Diet & Workout Plans</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EmptyState 
-                icon={<Dumbbell className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-                title="Plans Coming Soon" 
-                description="The ability to assign structured diet and workout plans will be available in Blocks 15-17." 
-              />
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="diet" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[var(--color-neutral-900)]">Diet & Workout Plans</h3>
+              <TabsList>
+                <TabsTrigger value="diet">Diet</TabsTrigger>
+                <TabsTrigger value="workout">Workout</TabsTrigger>
+                <TabsTrigger value="yoga">Yoga</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="diet">
+              <CoachDietTab connectionId={connection.id} dietPlans={connection.dietPlans} />
+            </TabsContent>
+            
+            <TabsContent value="workout">
+              {!isActive ? (
+                <EmptyState 
+                  icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
+                  title="Not connected" 
+                  description="Workout plans can only be managed for active clients." 
+                />
+              ) : (
+                <CoachWorkoutTab connectionId={connection.id} workoutPlans={connection.workoutPlans as any} recentLogs={recentWorkoutLogs} />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="yoga">
+              <Card>
+                <CardContent className="pt-6">
+                  <EmptyState 
+                    icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
+                    title="Yoga plans are coming soon" 
+                    description="The ability to assign structured yoga plans will be available in Block 17." 
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="habits" className="mt-6">
