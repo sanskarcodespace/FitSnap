@@ -4,6 +4,8 @@ import { verifyToken } from "@/lib/auth/jwt"
 import prisma from "@/lib/db/prisma"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { getDailyNutritionSummary } from "@/lib/data/nutrition"
+import { ProgressRing, ProgressBar } from "@/components/ui/progress"
 
 export default async function ClientHomePage() {
   const token = (await cookies()).get("session_token")?.value
@@ -47,22 +49,8 @@ export default async function ClientHomePage() {
     day: 'numeric'
   })
 
-  // Fetch today's food and water
-  const todayMeals = await prisma.mealLog.findMany({
-    where: { clientId: session.userId, date: todayStr },
-    include: { foodItems: true }
-  })
-  
-  const todayWater = await prisma.waterLogEntry.aggregate({
-    where: { clientId: session.userId, date: todayStr },
-    _sum: { amountMl: true }
-  })
-
-  let todayCalories = 0
-  todayMeals.forEach(m => {
-    m.foodItems.forEach(i => todayCalories += i.calories)
-  })
-  const totalWater = todayWater._sum.amountMl || 0
+  // Fetch today's summary
+  const summary = await getDailyNutritionSummary(session.userId, todayStr)
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -107,7 +95,7 @@ export default async function ClientHomePage() {
         {/* Food & Nutrition Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
           <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Food & Nutrition</h2>
-          {todayMeals.length === 0 && totalWater === 0 ? (
+          {summary.meals.length === 0 && summary.waterEntries.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
               <div className="w-12 h-12 rounded-full bg-[var(--color-secondary-50)] text-[var(--color-secondary-500)] flex items-center justify-center mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M18.5 15.5 12 22l-6.5-6.5a8.48 8.48 0 0 1 0-12 8.48 8.48 0 0 1 13 0"/></svg>
@@ -120,16 +108,48 @@ export default async function ClientHomePage() {
             </div>
           ) : (
             <div className="flex-1 flex flex-col">
-              <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
-                <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)] flex flex-col justify-center">
-                  <p className="text-xs text-[var(--color-neutral-500)] mb-1">Calories Logged</p>
-                  <p className="font-bold text-lg text-[var(--color-neutral-800)]">{todayCalories} kcal</p>
+              {summary.hasTarget ? (
+                <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
+                  <div className="flex flex-col items-center justify-center border border-[var(--color-neutral-100)] bg-[var(--color-neutral-50)] rounded-lg p-3">
+                    <p className="text-xs text-[var(--color-neutral-500)] mb-2">Calories</p>
+                    <ProgressRing 
+                      value={summary.consumedTotals.calories} 
+                      max={summary.targets!.calories} 
+                      size={80}
+                      strokeWidth={8}
+                      indicatorColor="text-[var(--color-macro-calories)]"
+                    />
+                    <p className="text-xs font-bold mt-2">{summary.consumedTotals.calories} <span className="font-normal text-[var(--color-neutral-500)]">/ {summary.targets!.calories}</span></p>
+                  </div>
+                  <div className="flex flex-col justify-center border border-[var(--color-neutral-100)] bg-[var(--color-neutral-50)] rounded-lg p-3">
+                    <p className="text-xs text-[var(--color-neutral-500)] mb-2">Water</p>
+                    <div className="mb-1 text-sm font-bold text-center">
+                      {(summary.consumedTotals.waterMl / 1000).toFixed(1)} <span className="font-normal text-[var(--color-neutral-500)]">/ {summary.targets!.waterLiters.toFixed(1)} L</span>
+                    </div>
+                    <ProgressBar 
+                      value={summary.consumedTotals.waterMl / 1000} 
+                      max={summary.targets!.waterLiters} 
+                      indicatorColor="bg-[var(--color-macro-water)]" 
+                    />
+                    <div className="mt-3">
+                       <p className="text-[10px] text-[var(--color-neutral-500)] mb-1">Pro: {summary.consumedTotals.protein}/{summary.targets!.protein}g</p>
+                       <p className="text-[10px] text-[var(--color-neutral-500)] mb-1">Carb: {summary.consumedTotals.carbs}/{summary.targets!.carbs}g</p>
+                       <p className="text-[10px] text-[var(--color-neutral-500)]">Fat: {summary.consumedTotals.fat}/{summary.targets!.fat}g</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)] flex flex-col justify-center">
-                  <p className="text-xs text-[var(--color-neutral-500)] mb-1">Water Logged</p>
-                  <p className="font-bold text-lg text-[var(--color-primary-700)]">{totalWater} ml</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
+                  <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)] flex flex-col justify-center">
+                    <p className="text-xs text-[var(--color-neutral-500)] mb-1">Calories Logged</p>
+                    <p className="font-bold text-lg text-[var(--color-neutral-800)]">{summary.consumedTotals.calories} kcal</p>
+                  </div>
+                  <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 border border-[var(--color-neutral-100)] flex flex-col justify-center">
+                    <p className="text-xs text-[var(--color-neutral-500)] mb-1">Water Logged</p>
+                    <p className="font-bold text-lg text-[var(--color-primary-700)]">{summary.consumedTotals.waterMl} ml</p>
+                  </div>
                 </div>
-              </div>
+              )}
               <Button variant="secondary" className="w-full" asChild>
                 <Link href="/client/food">View Details & Log</Link>
               </Button>

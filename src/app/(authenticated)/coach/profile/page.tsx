@@ -55,7 +55,7 @@ export default async function CoachProfilePage() {
             <CardContent className="p-6 text-center space-y-4">
               <Avatar 
                 src={profile.profilePhoto || undefined} 
-                fallback={profile.businessName?.charAt(0).toUpperCase() || "C"} 
+                initials={profile.businessName?.charAt(0).toUpperCase() || "C"} 
                 size="lg" 
                 className="mx-auto border-4 border-[var(--color-secondary-100)]"
               />

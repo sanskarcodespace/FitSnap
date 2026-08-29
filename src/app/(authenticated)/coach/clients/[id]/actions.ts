@@ -80,3 +80,23 @@ export async function saveNutritionTargets(connectionId: string, formData: FormD
     return { error: "An unexpected error occurred while saving targets." }
   }
 }
+
+import { getNutritionHistorySummary } from "@/lib/data/nutrition"
+
+export async function fetchCoachNutritionHistory(clientId: string, startDate: string, endDate: string) {
+  const token = (await cookies()).get("session_token")?.value
+  if (!token) throw new Error("Unauthorized")
+  
+  const session = await verifyToken(token)
+  if (!session || session.role !== "COACH") throw new Error("Unauthorized")
+
+  // The function getNutritionHistorySummary already checks connection scoping when requestingCoachId is passed
+  // but we can explicitly call it with the coach ID to ensure data is only returned if there's an active connection.
+  const summary = await getNutritionHistorySummary(clientId, startDate, endDate, session.userId)
+  
+  if (!summary.hasActiveConnection) {
+    throw new Error("You do not have an active connection with this client.")
+  }
+
+  return summary;
+}

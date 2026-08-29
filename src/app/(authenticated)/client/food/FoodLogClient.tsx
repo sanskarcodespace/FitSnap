@@ -12,11 +12,13 @@ import type { NutritionSummary } from "@/lib/data/nutrition"
 type FoodLogClientProps = {
   date: string;
   summary: NutritionSummary;
+  hideHeader?: boolean;
 }
 
 export function FoodLogClient({
   date,
-  summary
+  summary,
+  hideHeader
 }: FoodLogClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -71,7 +73,7 @@ export function FoodLogClient({
   }
 
   const handleEditMeal = (mealId: string) => {
-    const mealToEdit = meals.find(m => m.id === mealId)
+    const mealToEdit = summary.meals.find((m: any) => m.id === mealId)
     if (mealToEdit) {
       setEditingMeal(mealToEdit)
       setIsAddMealOpen(true)
@@ -118,22 +120,32 @@ export function FoodLogClient({
   }) // Add T12 to avoid UTC boundary issues for display
 
   return (
-    <div className="flex flex-col h-full max-w-3xl mx-auto py-8 space-y-6">
+    <div className={`flex flex-col h-full mx-auto space-y-6 ${!hideHeader ? 'max-w-3xl py-8' : ''}`}>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
-            Food & Nutrition
-          </h1>
-          <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
-            Track what you eat and see your macro breakdown.
-          </p>
+      {!hideHeader && (
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+              Food & Nutrition
+            </h1>
+            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+              Track what you eat and see your macro breakdown.
+            </p>
+          </div>
+          
+          <Button onClick={() => { setEditingMeal(null); setIsAddMealOpen(true); }} disabled={isPending}>
+            + Log a Meal
+          </Button>
         </div>
-        
-        <Button onClick={() => { setEditingMeal(null); setIsAddMealOpen(true); }} disabled={isPending}>
-          + Log a Meal
-        </Button>
-      </div>
+      )}
+      
+      {hideHeader && (
+        <div className="flex justify-end">
+          <Button onClick={() => { setEditingMeal(null); setIsAddMealOpen(true); }} disabled={isPending}>
+            + Log a Meal
+          </Button>
+        </div>
+      )}
 
       {/* Date Navigator */}
       <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border border-[var(--color-neutral-200)]">
@@ -150,12 +162,7 @@ export function FoodLogClient({
 
       {/* Data View */}
       <DailyFoodLogView 
-        meals={meals}
-        waterEntries={waterEntries}
-        targetCalories={targetCalories}
-        targetProtein={targetProtein}
-        targetCarbs={targetCarbs}
-        targetFat={targetFat}
+        summary={summary}
         onDeleteMeal={handleDeleteMeal}
         onEditMeal={handleEditMeal}
         onAddWater={handleAddWater}

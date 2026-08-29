@@ -11,6 +11,8 @@ import { Utensils, Dumbbell, Calendar, Target, FileText, CheckSquare, Activity, 
 import { NutritionTargetsForm } from "./NutritionTargetsForm"
 import { DailyFoodLogView } from "@/components/food/DailyFoodLogView"
 import Link from "next/link"
+import { getDailyNutritionSummary } from "@/lib/data/nutrition"
+import { CoachFoodHistoryTab } from "./CoachFoodHistoryTab"
 
 const GOALS: Record<string, string> = {
   "WEIGHT_LOSS": "Weight Loss",
@@ -60,37 +62,15 @@ export default async function ClientDetailPage(
   const todayStr = new Date().toISOString().split('T')[0]
   const queryDate = searchParams.date || todayStr
   const dateToUse = queryDate > todayStr ? todayStr : queryDate
-
-  const meals = await prisma.mealLog.findMany({
-    where: {
-      clientId: connection.clientId,
-      date: dateToUse
-    },
-    include: {
-      foodItems: true
-    },
-    orderBy: {
-      createdAt: 'asc'
-    }
-  })
-
-  const waterEntries = await prisma.waterLogEntry.findMany({
-    where: {
-      clientId: connection.clientId,
-      date: dateToUse
-    },
-    orderBy: {
-      loggedAt: 'asc'
-    }
-  })
+  const summary = await getDailyNutritionSummary(connection.clientId || "", dateToUse, session.userId)
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
       {/* Header Profile Summary */}
       <div className="flex flex-col md:flex-row gap-6 items-start md:items-center bg-white p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
         <Avatar 
-          fallback={clientName.substring(0, 2).toUpperCase()} 
-          size="xl" 
+          initials={clientName.substring(0, 2).toUpperCase()} 
+          size="lg" 
           className="border-4 border-[var(--color-primary-100)] text-[var(--color-primary-700)] bg-[var(--color-primary-50)]"
         />
         <div className="flex-1 space-y-2">
@@ -98,20 +78,20 @@ export default async function ClientDetailPage(
           <p className="text-[var(--color-neutral-500)]">{connection.client?.email}</p>
           <div className="flex flex-wrap gap-2 pt-2">
             {!profile?.onboardingCompleted ? (
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">
+              <Badge variant="warning" className="border-none">
                 Profile Setup Pending
               </Badge>
             ) : (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 border-none">
+              <Badge variant="success" className="border-none">
                 Active Client
               </Badge>
             )}
             {profile?.goal && (
-              <Badge variant="outline" className="text-[var(--color-neutral-600)]">
+              <Badge variant="secondary" className="text-[var(--color-neutral-600)]">
                 Goal: {GOALS[profile.goal] || profile.goal}
               </Badge>
             )}
-            <Badge variant="outline" className="text-[var(--color-neutral-500)] border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)]">
+            <Badge variant="secondary" className="text-[var(--color-neutral-500)] border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)]">
               Since {new Date(connection.acceptedAt || connection.invitedAt).toLocaleDateString()}
             </Badge>
           </div>
@@ -143,19 +123,15 @@ export default async function ClientDetailPage(
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Goal</p>
-                        <p className="font-medium mt-1">{GOALS[profile.goal] || profile.goal}</p>
-                      </div>
-                      <div>
-                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Activity Level</p>
-                        <p className="font-medium mt-1">{profile.activityLevel?.replace(/_/g, " ") || "Not set"}</p>
+                        <p className="font-medium mt-1">{profile.goal ? GOALS[profile.goal] || profile.goal : "Not set"}</p>
                       </div>
                       <div>
                         <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Current Weight</p>
-                        <p className="font-medium mt-1">{profile.currentWeight ? `${profile.currentWeight} ${profile.weightUnit}` : "Not set"}</p>
+                        <p className="font-medium mt-1">{profile.currentWeight ? `${profile.currentWeight} ${profile.preferredWeightUnit}` : "Not set"}</p>
                       </div>
                       <div>
                         <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Target Weight</p>
-                        <p className="font-medium mt-1">{profile.targetWeight ? `${profile.targetWeight} ${profile.weightUnit}` : "Not set"}</p>
+                        <p className="font-medium mt-1">{profile.targetWeight ? `${profile.targetWeight} ${profile.preferredWeightUnit}` : "Not set"}</p>
                       </div>
                       <div>
                         <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Height</p>
@@ -199,61 +175,72 @@ export default async function ClientDetailPage(
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xl">Food & Nutrition History</CardTitle>
-              
-              {/* Date Navigator for Coach View */}
-              <div className="flex items-center gap-4 bg-[var(--color-neutral-50)] rounded-lg p-1 border border-[var(--color-neutral-200)]">
-                <Link 
-                  href={`/coach/clients/${connection.id}?date=${
-                    (() => {
-                      const prev = new Date(dateToUse);
-                      prev.setDate(prev.getDate() - 1);
-                      return prev.toISOString().split('T')[0];
-                    })()
-                  }#nutrition`}
-                  className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-900)]"
-                >
-                  ← Prev
-                </Link>
-                
-                <span className="text-sm font-bold text-[var(--color-neutral-800)] min-w-[100px] text-center">
-                  {dateToUse === todayStr ? "Today" : new Date(dateToUse + "T12:00:00Z").toLocaleDateString('en-US', {
-                    month: 'short', day: 'numeric', year: 'numeric'
-                  })}
-                </span>
-                
-                {dateToUse >= todayStr ? (
-                  <span className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-300)] cursor-not-allowed">Next →</span>
-                ) : (
-                  <Link 
-                    href={`/coach/clients/${connection.id}?date=${
-                      (() => {
-                        const next = new Date(dateToUse);
-                        next.setDate(next.getDate() + 1);
-                        return next.toISOString().split('T')[0];
-                      })()
-                    }#nutrition`}
-                    className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-900)]"
-                  >
-                    Next →
-                  </Link>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <DailyFoodLogView 
-                meals={meals}
-                waterEntries={waterEntries}
-                targetCalories={nutritionTarget?.targetCalories}
-                targetProtein={nutritionTarget?.targetProtein}
-                targetCarbs={nutritionTarget?.targetCarbs}
-                targetFat={nutritionTarget?.targetFat}
-                readOnly={true}
-              />
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="daily" className="w-full mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[var(--color-neutral-900)]">Food Logs & History</h3>
+              <TabsList>
+                <TabsTrigger value="daily">Daily Log</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="daily">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-xl">Daily Log</CardTitle>
+                  
+                  {/* Date Navigator for Coach View */}
+                  <div className="flex items-center gap-4 bg-[var(--color-neutral-50)] rounded-lg p-1 border border-[var(--color-neutral-200)]">
+                    <Link 
+                      href={`/coach/clients/${connection.id}?date=${
+                        (() => {
+                          const prev = new Date(dateToUse);
+                          prev.setDate(prev.getDate() - 1);
+                          return prev.toISOString().split('T')[0];
+                        })()
+                      }#nutrition`}
+                      className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-900)]"
+                    >
+                      ← Prev
+                    </Link>
+                    
+                    <span className="text-sm font-bold text-[var(--color-neutral-800)] min-w-[100px] text-center">
+                      {dateToUse === todayStr ? "Today" : new Date(dateToUse + "T12:00:00Z").toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric'
+                      })}
+                    </span>
+                    
+                    {dateToUse >= todayStr ? (
+                      <span className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-300)] cursor-not-allowed">Next →</span>
+                    ) : (
+                      <Link 
+                        href={`/coach/clients/${connection.id}?date=${
+                          (() => {
+                            const next = new Date(dateToUse);
+                            next.setDate(next.getDate() + 1);
+                            return next.toISOString().split('T')[0];
+                          })()
+                        }#nutrition`}
+                        className="px-2 py-1 text-sm font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-900)]"
+                      >
+                        Next →
+                      </Link>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <DailyFoodLogView 
+                    summary={summary}
+                    readOnly={true}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <CoachFoodHistoryTab clientId={connection.clientId || ""} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="plans" className="mt-6">
@@ -263,7 +250,7 @@ export default async function ClientDetailPage(
             </CardHeader>
             <CardContent>
               <EmptyState 
-                icon={Dumbbell} 
+                icon={<Dumbbell className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
                 title="Plans Coming Soon" 
                 description="The ability to assign structured diet and workout plans will be available in Blocks 15-17." 
               />
@@ -278,7 +265,7 @@ export default async function ClientDetailPage(
             </CardHeader>
             <CardContent>
               <EmptyState 
-                icon={CheckSquare} 
+                icon={<CheckSquare className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
                 title="Habits Coming Soon" 
                 description="Daily habit tracking will be built in Block 18." 
               />
@@ -293,7 +280,7 @@ export default async function ClientDetailPage(
             </CardHeader>
             <CardContent>
               <EmptyState 
-                icon={Activity} 
+                icon={<Activity className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
                 title="Progress Coming Soon" 
                 description="Weight tracking charts and progress photo galleries will be available in Block 20." 
               />
@@ -308,7 +295,7 @@ export default async function ClientDetailPage(
             </CardHeader>
             <CardContent>
               <EmptyState 
-                icon={FileText} 
+                icon={<FileText className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
                 title="Check-ins Coming Soon" 
                 description="Weekly check-in forms and progress reports will be available in future blocks." 
               />

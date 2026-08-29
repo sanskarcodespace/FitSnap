@@ -331,3 +331,12 @@ export async function removeLastWater(date: string) {
     return { error: "Failed to remove water entry" }
   }
 }
+
+import { getNutritionHistorySummary } from "@/lib/data/nutrition";
+
+export async function fetchClientNutritionHistory(startDate: string, endDate: string) {
+  const session = await getClientSession();
+  if (!session) throw new Error("Unauthorized");
+
+  return getNutritionHistorySummary(session.userId, startDate, endDate);
+}

@@ -36,50 +36,52 @@ export async function saveOnboarding(formData: FormData) {
     }
   }
 
-  try {
-    let profilePhotoPath: string | undefined = undefined
+    let shouldRedirect = false
+    try {
+      let profilePhotoPath: string | undefined = undefined
 
-    if (profilePhotoFile && profilePhotoFile.size > 0) {
-      profilePhotoPath = await processAndStoreImage(profilePhotoFile, {
-        folder: "profiles",
-        maxWidth: 400,
-        maxHeight: 400
-      })
-    }
-
-    const data: any = {
-      businessName: businessName || null,
-      bio: bio || null,
-      specialties: specialties,
-      credentials: credentials || null,
-      timezone: timezone || "UTC",
-    }
-
-    if (profilePhotoPath) {
-      data.profilePhoto = profilePhotoPath
-    }
-
-    if (isFinalStep) {
-      data.onboardingCompleted = true
-      data.onboardingCompletedAt = new Date()
-    }
-
-    await prisma.coachProfile.upsert({
-      where: { userId: session.userId },
-      update: data,
-      create: {
-        userId: session.userId,
-        ...data
+      if (profilePhotoFile && profilePhotoFile.size > 0) {
+        profilePhotoPath = await processAndStoreImage(profilePhotoFile, {
+          folder: "profiles",
+          maxWidth: 400,
+          maxHeight: 400
+        })
       }
-    })
 
-    if (isFinalStep) {
+      const data: any = {
+        businessName: businessName || null,
+        bio: bio || null,
+        specialties: specialties,
+        credentials: credentials || null,
+        timezone: timezone || "UTC",
+      }
+
+      if (profilePhotoPath) {
+        data.profilePhoto = profilePhotoPath
+      }
+
+      if (isFinalStep) {
+        data.onboardingCompleted = true
+        data.onboardingCompletedAt = new Date()
+        shouldRedirect = true
+      }
+
+      await prisma.coachProfile.upsert({
+        where: { userId: session.userId },
+        update: data,
+        create: {
+          userId: session.userId,
+          ...data
+        }
+      })
+    } catch (error: any) {
+      console.error("Save onboarding error:", error)
+      return { error: error.message || "Failed to save progress." }
+    }
+
+    if (shouldRedirect) {
       redirect("/coach")
     }
 
     return { success: true }
-  } catch (error: any) {
-    console.error("Save onboarding error:", error)
-    return { error: error.message || "Failed to save progress." }
   }
-}

@@ -57,9 +57,9 @@ export default function CoachOnboardingPage() {
     }
   }
 
-  const toggleSpecialty = (id: string) => {
+  const handleSpecialtyChange = (id: string, checked: boolean) => {
     setSelectedSpecialties(prev => 
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+      checked ? [...prev, id] : prev.filter(s => s !== id)
     )
   }
 
@@ -72,8 +72,6 @@ export default function CoachOnboardingPage() {
     formData.append("isFinalStep", "true")
     formData.append("timezone", timezone)
     
-    selectedSpecialties.forEach(s => formData.append("specialties", s))
-
     try {
       const result = await saveOnboarding(formData)
       if (result?.error) {
@@ -141,10 +139,13 @@ export default function CoachOnboardingPage() {
             <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] -mt-2 mb-2">Select at least one specialty.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {SPECIALTIES_LIST.map((spec) => (
-                <label key={spec.id} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)] transition-colors">
+                <label key={spec.id} htmlFor={spec.id} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)] transition-colors">
                   <Checkbox 
+                    id={spec.id} 
+                    name="specialties"
+                    value={spec.id}
                     checked={selectedSpecialties.includes(spec.id)}
-                    onCheckedChange={() => toggleSpecialty(spec.id)}
+                    onChange={(e) => handleSpecialtyChange(spec.id, e.target.checked)}
                   />
                   <span className="text-[var(--text-body-sm-size)] font-medium text-[var(--color-neutral-700)]">{spec.label}</span>
                 </label>

@@ -207,7 +207,7 @@ export function ClientsSection({
                                     Active
                                   </Badge>
                                   {goalLabel && (
-                                    <Badge variant="outline" className="text-[var(--color-neutral-600)]">
+                                    <Badge variant="secondary" className="font-normal text-xs text-[var(--color-neutral-600)]">
                                       {goalLabel}
                                     </Badge>
                                   )}

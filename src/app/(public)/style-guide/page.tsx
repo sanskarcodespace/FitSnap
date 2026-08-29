@@ -20,6 +20,7 @@ import { ProgressBar, ProgressRing } from "@/components/ui/progress"
 import { Skeleton, Spinner, EmptyState } from "@/components/ui/states"
 import { Tooltip } from "@/components/ui/tooltip"
 import { DataTable } from "@/components/ui/data-table"
+import { TrendChart } from "@/components/ui/trend-chart"
 import { Search, Info, Plus } from "lucide-react"
 
 export default function StyleGuidePage() {
@@ -227,22 +228,51 @@ export default function StyleGuidePage() {
       {/* Navigation & Layout */}
       <section className="space-y-4">
         <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Navigation (Tabs)</h2>
-        <Tabs>
+        <Tabs defaultValue="tab1">
           <TabsList>
-            <TabsTrigger isActive={activeTab === 'tab1'} onClick={() => setActiveTab('tab1')}>Overview</TabsTrigger>
-            <TabsTrigger isActive={activeTab === 'tab2'} onClick={() => setActiveTab('tab2')}>Meals</TabsTrigger>
-            <TabsTrigger isActive={activeTab === 'tab3'} onClick={() => setActiveTab('tab3')}>Workouts</TabsTrigger>
+            <TabsTrigger value="tab1">Overview</TabsTrigger>
+            <TabsTrigger value="tab2">Meals</TabsTrigger>
+            <TabsTrigger value="tab3">Workouts</TabsTrigger>
           </TabsList>
-          <TabsContent isActive={activeTab === 'tab1'}>
+          <TabsContent value="tab1">
             <div className="p-4 border rounded-md mt-2">Overview Content</div>
           </TabsContent>
-          <TabsContent isActive={activeTab === 'tab2'}>
+          <TabsContent value="tab2">
             <div className="p-4 border rounded-md mt-2">Meals Content</div>
           </TabsContent>
-          <TabsContent isActive={activeTab === 'tab3'}>
+          <TabsContent value="tab3">
             <div className="p-4 border rounded-md mt-2">Workouts Content</div>
           </TabsContent>
         </Tabs>
+      </section>
+
+      {/* Trend Chart */}
+      <section className="space-y-4">
+        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Data Visualization</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Trend Chart (Calories)</CardTitle>
+            <CardDescription>Reusable component for plotting historical data with a target line.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full">
+              <TrendChart 
+                data={[
+                  { date: "2023-11-01", value: 1800, isLogged: true },
+                  { date: "2023-11-02", value: 1950, isLogged: true },
+                  { date: "2023-11-03", value: 0, isLogged: false },
+                  { date: "2023-11-04", value: 2100, isLogged: true },
+                  { date: "2023-11-05", value: 1850, isLogged: true },
+                  { date: "2023-11-06", value: 1900, isLogged: true },
+                  { date: "2023-11-07", value: 2000, isLogged: true },
+                ]}
+                referenceLine={2000}
+                metricColor="var(--color-macro-calories)"
+                yAxisLabel="kcal"
+              />
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* Progress & States */}

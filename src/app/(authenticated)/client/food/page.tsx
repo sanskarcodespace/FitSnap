@@ -2,7 +2,8 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth/jwt"
 import prisma from "@/lib/db/prisma"
-import { FoodLogClient } from "./FoodLogClient"
+import { FoodPageLayout } from "./FoodPageLayout"
+import { getDailyNutritionSummary } from "@/lib/data/nutrition"
 
 export default async function ClientFoodPage(
   props: {
@@ -24,19 +25,6 @@ export default async function ClientFoodPage(
     redirect("/client/onboarding")
   }
 
-  // Get active connection for targets
-  const activeConnection = await prisma.coachClientConnection.findFirst({
-    where: {
-      invitedEmail: session.email,
-      status: "ACTIVE"
-    },
-    include: {
-      nutritionTargets: true
-    }
-  })
-
-  const currentTarget = activeConnection?.nutritionTargets[0]
-
   // Date Logic
   const todayStr = new Date().toISOString().split('T')[0]
   const queryDate = searchParams.date || todayStr
@@ -44,39 +32,13 @@ export default async function ClientFoodPage(
   // Prevent querying future dates if manually entered in URL
   const dateToUse = queryDate > todayStr ? todayStr : queryDate
 
-  // Fetch data
-  const meals = await prisma.mealLog.findMany({
-    where: {
-      clientId: session.userId,
-      date: dateToUse
-    },
-    include: {
-      foodItems: true
-    },
-    orderBy: {
-      createdAt: 'asc'
-    }
-  })
-
-  const waterEntries = await prisma.waterLogEntry.findMany({
-    where: {
-      clientId: session.userId,
-      date: dateToUse
-    },
-    orderBy: {
-      loggedAt: 'asc'
-    }
-  })
+  // Fetch summary
+  const summary = await getDailyNutritionSummary(session.userId, dateToUse)
 
   return (
-    <FoodLogClient 
+    <FoodPageLayout 
       date={dateToUse}
-      meals={meals}
-      waterEntries={waterEntries}
-      targetCalories={currentTarget?.targetCalories}
-      targetProtein={currentTarget?.targetProtein}
-      targetCarbs={currentTarget?.targetCarbs}
-      targetFat={currentTarget?.targetFat}
+      summary={summary}
     />
   )
 }

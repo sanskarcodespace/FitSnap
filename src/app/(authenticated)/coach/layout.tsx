@@ -28,7 +28,7 @@ export default async function CoachLayoutWrapper({ children }: { children: React
   }
 
   const handleLogout = async () => {
-    "use server"
+    "use server";
     (await cookies()).delete("session_token")
     redirect("/login")
   }
