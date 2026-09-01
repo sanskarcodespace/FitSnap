@@ -134,8 +134,8 @@ model CoachClientConnection {
   yogaPlans       YogaPlan[]
   habitPlans      HabitPlan[]           @relation("ConnectionHabitPlans")
 
-  @@index([coachId])
-  @@index([clientId])
+  @@index([coachId, status])
+  @@index([clientId, status])
   @@index([invitedEmail])
 }
 
@@ -155,7 +155,7 @@ model DietPlan {
   updatedAt  DateTime  @updatedAt
   archivedAt DateTime?
 
-  @@index([coachClientConnectionId])
+  @@index([coachClientConnectionId, status])
 }
 
 model DietPlanMealGuidance {
@@ -212,8 +212,7 @@ model MealLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model FoodItem {
@@ -245,8 +244,7 @@ model WaterLogEntry {
   amountMl Int
   loggedAt DateTime @default(now())
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model WorkoutPlan {
@@ -265,7 +263,7 @@ model WorkoutPlan {
   updatedAt  DateTime  @updatedAt
   archivedAt DateTime?
 
-  @@index([coachClientConnectionId])
+  @@index([coachClientConnectionId, status])
 }
 
 model WorkoutPlanSession {
@@ -322,8 +320,7 @@ model WorkoutLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model YogaPlan {
@@ -342,7 +339,7 @@ model YogaPlan {
   updatedAt  DateTime  @updatedAt
   archivedAt DateTime?
 
-  @@index([coachClientConnectionId])
+  @@index([coachClientConnectionId, status])
 }
 
 model YogaPlanSequence {
@@ -401,8 +398,7 @@ model YogaLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model WeightEntry {
@@ -415,8 +411,7 @@ model WeightEntry {
   note        String?
   createdAt   DateTime @default(now())
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model BodyMeasurementEntry {
@@ -433,8 +428,7 @@ model BodyMeasurementEntry {
   note            String?
   createdAt       DateTime @default(now())
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model ProgressPhotoEntry {
@@ -450,8 +444,7 @@ model ProgressPhotoEntry {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  @@index([clientId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
 }
 
 model HabitPlan {
@@ -468,7 +461,7 @@ model HabitPlan {
   items                   HabitPlanItem[]
   guidelines              HabitPlanGuideline[]
 
-  @@index([coachClientConnectionId])
+  @@index([coachClientConnectionId, status])
 }
 
 model HabitPlanItem {
@@ -508,9 +501,8 @@ model HabitCompletion {
   note               String?
   createdAt          DateTime      @default(now())
 
-  @@index([clientId])
-  @@index([habitPlanItemId])
-  @@index([date])
+  @@index([clientId, date(sort: Desc)])
+  @@index([habitPlanItemId, date(sort: Desc)])
 }
 
 model DailyCheckIn {

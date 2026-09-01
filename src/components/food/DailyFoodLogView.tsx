@@ -3,6 +3,7 @@
 import React from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { getThumbnailUrl } from "@/lib/upload"
 import { Tooltip } from "@/components/ui/tooltip"
 import { ProgressRing, ProgressBar } from "@/components/ui/progress"
 import type { NutritionSummary } from "@/lib/data/nutrition"
@@ -328,7 +329,7 @@ export function DailyFoodLogView({
                              className="w-16 h-16 rounded-md overflow-hidden bg-black border border-[var(--color-neutral-200)] cursor-pointer relative group"
                              onClick={() => setSelectedImage(meal.photoReference!)}
                            >
-                             <img src={meal.photoReference} alt="Meal Photo" className="w-full h-full object-cover transition-opacity group-hover:opacity-80" />
+                             <img src={getThumbnailUrl(meal.photoReference)} loading="lazy" alt={`Photo of ${meal.mealType} logged on ${new Date(meal.date).toLocaleDateString()}`} className="w-full h-full object-cover transition-opacity group-hover:opacity-80" />
                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-md"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                              </div>
@@ -399,7 +400,7 @@ export function DailyFoodLogView({
           <div className="flex gap-3">
             <Button 
               variant="secondary" 
-              className="flex-1 bg-[var(--color-primary-50)] text-[var(--color-primary-700)] hover:bg-[var(--color-primary-100)]"
+              className="flex-1 min-h-[44px] bg-[var(--color-primary-50)] text-[var(--color-primary-700)] hover:bg-[var(--color-primary-100)]"
               onClick={() => onAddWater?.(250)}
               disabled={isPending}
             >

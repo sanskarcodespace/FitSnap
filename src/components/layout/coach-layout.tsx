@@ -47,6 +47,9 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
 
   return (
     <div className="flex min-h-screen w-full bg-[var(--color-secondary-50)]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-[var(--background)] focus:text-[var(--foreground)] focus:font-medium">
+        Skip to main content
+      </a>
       
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 bg-[var(--background)] border-r border-[var(--color-neutral-200)] shadow-sm">
@@ -186,7 +189,7 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 md:pl-64 flex flex-col min-h-screen pt-16 md:pt-0">
-        <main className="flex-1 p-4 md:p-8">
+        <main id="main-content" className="flex-1 p-4 md:p-8" tabIndex={-1}>
           {children}
         </main>
       </div>

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { getThumbnailUrl } from "@/lib/upload"
 
 const avatarSizes = {
   sm: "h-8 w-8 text-xs",
@@ -28,8 +29,9 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       >
         {src ? (
           <img
-            src={src}
-            alt={alt || "Avatar"}
+            src={getThumbnailUrl(src)}
+            alt={alt || "Profile photo"}
+            loading="lazy"
             className="aspect-square h-full w-full object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';

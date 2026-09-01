@@ -422,9 +422,12 @@ export function ClientHabitsView({
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3 flex-1">
                           <button
+                            role="checkbox"
+                            aria-checked={isChecked}
+                            aria-label={`Mark ${item.name} as ${isChecked ? "incomplete" : "complete"}`}
                             disabled={isPending}
                             onClick={() => handleToggle(item.id, isChecked)}
-                            className={`mt-0.5 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                            className={`mt-0.5 relative after:absolute after:-inset-3 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
                               isChecked
                                 ? "bg-[var(--color-primary-600)] border-[var(--color-primary-600)] text-white"
                                 : "bg-white border-[var(--color-neutral-300)] hover:border-[var(--color-primary-400)] text-transparent"
@@ -488,7 +491,7 @@ export function ClientHabitsView({
                                 </p>
                               ) : null}
                               <button
-                                className="text-[var(--color-primary-700)] font-semibold hover:underline flex items-center gap-1"
+                                className="text-[var(--color-primary-700)] font-semibold hover:underline flex items-center gap-1 p-2 -ml-2"
                                 onClick={() => handleStartEditNote(item.id, comp.note)}
                               >
                                 <Edit className="w-3 h-3" />

@@ -25,7 +25,7 @@
   --color-secondary-900: #0f172a;
   --color-secondary-950: #020617;
 
-  --color-accent: #f59e0b; /* Amber */
+  --color-accent: #b45309; /* Amber 700 for WCAG AA */
 
   --color-success-bg: #f0fdf4;
   --color-success-text: #166534;
@@ -36,11 +36,11 @@
   --color-info-bg: #eff6ff;
   --color-info-text: #1e40af;
 
-  --color-macro-calories: #3b82f6;
-  --color-macro-protein: #ef4444;
-  --color-macro-carbs: #10b981;
-  --color-macro-fat: #f59e0b;
-  --color-macro-water: #0ea5e9;
+  --color-macro-calories: #1d4ed8; /* Blue 700 */
+  --color-macro-protein: #b91c1c; /* Red 700 */
+  --color-macro-carbs: #047857; /* Emerald 700 */
+  --color-macro-fat: #b45309; /* Amber 700 */
+  --color-macro-water: #0369a1; /* Sky 700 */
 
   --color-neutral-50: #fafafa;
   --color-neutral-100: #f5f5f5;
@@ -105,4 +105,15 @@ body {
 /* Tabular nums utility for nutrition figures */
 .font-tabular {
   font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

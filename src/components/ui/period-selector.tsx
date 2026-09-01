@@ -221,7 +221,7 @@ export function PeriodSelector({
       <div className="w-full md:w-auto">
         <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Time Period</label>
         <select 
-          className="px-3 py-2 border border-[var(--color-neutral-300)] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] w-full md:w-40"
+          className="px-3 py-2 min-h-[44px] border border-[var(--color-neutral-300)] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] w-full md:w-40"
           value={currentPeriod}
           onChange={(e) => handlePeriodChange(e.target.value)}
         >
@@ -239,7 +239,7 @@ export function PeriodSelector({
             <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Select Month</label>
             <input 
               type="month"
-              className="px-3 py-2 border border-[var(--color-neutral-300)] rounded-md text-sm w-full"
+              className="px-3 py-2 min-h-[44px] border border-[var(--color-neutral-300)] rounded-md text-sm w-full"
               value={monthStr}
               min={minMonth}
               max={maxMonth}
@@ -255,7 +255,7 @@ export function PeriodSelector({
             <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Start</label>
             <input 
               type="date"
-              className="px-3 py-2 border border-[var(--color-neutral-300)] rounded-md text-sm w-full"
+              className="px-3 py-2 min-h-[44px] border border-[var(--color-neutral-300)] rounded-md text-sm w-full"
               value={currentStart || ""}
               onChange={e => useUrlParams ? setInternalStart(e.target.value) : onStartDateChange?.(e.target.value)}
             />
@@ -264,7 +264,7 @@ export function PeriodSelector({
             <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">End</label>
             <input 
               type="date" 
-              className="px-3 py-2 border border-[var(--color-neutral-300)] rounded-md text-sm w-full"
+              className="px-3 py-2 min-h-[44px] border border-[var(--color-neutral-300)] rounded-md text-sm w-full"
               value={currentEnd || ""}
               max={new Date().toISOString().split('T')[0]}
               onChange={e => useUrlParams ? setInternalEnd(e.target.value) : onEndDateChange?.(e.target.value)}

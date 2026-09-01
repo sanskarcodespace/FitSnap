@@ -16,6 +16,7 @@ export interface TrendChartProps {
   className?: string;
   yAxisLabel?: string;
   fixedYAxisRange?: [number, number];
+  ariaLabel?: string;
 }
 
 export function TrendChart({
@@ -25,7 +26,8 @@ export function TrendChart({
   height = 240,
   className = "",
   yAxisLabel,
-  fixedYAxisRange
+  fixedYAxisRange,
+  ariaLabel = "Trend chart"
 }: TrendChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -94,9 +96,34 @@ export function TrendChart({
   const labelStep = Math.max(1, Math.ceil(data.length / maxLabels));
 
   return (
-    <div ref={containerRef} className={`relative w-full ${className}`} style={{ height }}>
+    <figure 
+      ref={containerRef} 
+      className={`relative w-full ${className}`} 
+      style={{ height }}
+      aria-label={ariaLabel}
+    >
+      <div className="sr-only">
+        <table>
+          <caption>{ariaLabel} data</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((point, index) => (
+              <tr key={index}>
+                <td>{point.date}</td>
+                <td>{point.isLogged ? point.value : "No data"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       {width > 0 && (
-        <svg width={width} height={height} className="absolute inset-0">
+        <svg width={width} height={height} className="absolute inset-0" aria-hidden="true">
           
           {/* Y-Axis Guidelines & Labels (0, 50%, 100%) */}
           {[0, 0.5, 1].map(ratio => {
@@ -217,6 +244,6 @@ export function TrendChart({
 
         </svg>
       )}
-    </div>
+    </figure>
   );
 }

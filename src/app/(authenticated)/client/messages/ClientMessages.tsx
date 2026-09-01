@@ -96,7 +96,10 @@ export function ClientMessages({
                       : 'bg-white border border-[var(--color-neutral-200)] text-[var(--color-neutral-800)] rounded-bl-sm shadow-sm'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">{msg.body}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">
+                          <span className="sr-only">{isMine ? "You: " : `Coach: `}</span>
+                          {msg.body}
+                        </p>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   <span className="text-[10px] text-[var(--color-neutral-400)]">

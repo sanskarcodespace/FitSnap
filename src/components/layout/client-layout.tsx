@@ -50,6 +50,9 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-[var(--background)]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-[var(--background)] focus:text-[var(--foreground)] focus:font-medium">
+        Skip to main content
+      </a>
       {/* Desktop & Mobile Top Header */}
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-[var(--color-neutral-200)] bg-white px-4 shadow-sm">
         <div className="flex items-center gap-6">
@@ -148,7 +151,7 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full pt-16 px-4 pb-24 md:pb-8">
+      <main id="main-content" className="flex-1 max-w-7xl mx-auto w-full pt-16 px-4 pb-24 md:pb-8" tabIndex={-1}>
         {children}
       </main>
 

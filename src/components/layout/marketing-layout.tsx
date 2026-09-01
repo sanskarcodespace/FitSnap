@@ -9,6 +9,9 @@ export interface MarketingLayoutProps {
 export function MarketingLayout({ children }: MarketingLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-[var(--background)] focus:text-[var(--foreground)] focus:font-medium">
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-50 w-full border-b border-[var(--color-neutral-200)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
@@ -38,7 +41,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1" tabIndex={-1}>
         {children}
       </main>
 

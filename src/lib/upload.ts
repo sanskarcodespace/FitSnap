@@ -51,11 +51,24 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
     await fs.mkdir(uploadDir, { recursive: true })
 
     // Generate unique filename
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.jpg`
+    const hash = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    const filename = `${hash}.jpg`
+    const thumbFilename = `${hash}-thumb.jpg`
     const filePath = path.join(uploadDir, filename)
+    const thumbFilePath = path.join(uploadDir, thumbFilename)
 
-    // Write file
+    // Write primary file
     await fs.writeFile(filePath, processedBuffer)
+
+    // Generate and write thumbnail
+    const thumbBuffer = await sharp(processedBuffer)
+      .resize(200, 200, {
+        fit: "cover"
+      })
+      .jpeg({ quality: 60 })
+      .toBuffer()
+
+    await fs.writeFile(thumbFilePath, thumbBuffer)
 
     // Return the URL path
     return isPrivate ? `/api/private-images/${folder}/${filename}` : `/uploads/${folder}/${filename}`
@@ -63,4 +76,11 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
     console.error("Image processing error:", error)
     throw new Error("Failed to process image. The file may be corrupted or not a valid image.")
   }
+}
+
+export function getThumbnailUrl(originalUrl: string): string {
+  if (!originalUrl) return ""
+  // If it's already a thumbnail or not a jpg from our system, just return it
+  if (originalUrl.endsWith("-thumb.jpg") || !originalUrl.endsWith(".jpg")) return originalUrl
+  return originalUrl.replace(/\.jpg$/, "-thumb.jpg")
 }

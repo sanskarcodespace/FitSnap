@@ -123,11 +123,33 @@ export async function getClientReport(
     prevEndDate = prevEnd.toISOString().split('T')[0];
   }
 
+  // Concurrently fetch all independent domain data
+  const [
+    nutritionPlan, nutritionCurrent, nutritionPrev,
+    workoutPlan, workoutCountCurr, workoutCountPrev,
+    yogaPlan, yogaCountCurr, yogaCountPrev,
+    activeHabitPlan,
+    checkinsCurr, checkinsPrev,
+    weightHistoryCurr,
+    photoCountCurr
+  ] = await Promise.all([
+    connection ? prisma.dietPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" } }) : Promise.resolve(null),
+    getNutritionHistorySummary(clientId, startDate, endDate),
+    getNutritionHistorySummary(clientId, prevStartDate, prevEndDate),
+    connection ? prisma.workoutPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" } }) : Promise.resolve(null),
+    getWorkoutCount(clientId, startDate, endDate),
+    getWorkoutCount(clientId, prevStartDate, prevEndDate),
+    connection ? prisma.yogaPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" } }) : Promise.resolve(null),
+    getYogaCount(clientId, startDate, endDate),
+    getYogaCount(clientId, prevStartDate, prevEndDate),
+    connection ? prisma.habitPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" }, include: { items: { where: { status: "active" } } } }) : Promise.resolve(null),
+    getCheckinStats(clientId, startDate, endDate),
+    getCheckinStats(clientId, prevStartDate, prevEndDate),
+    getWeightHistory(clientId, startDate, endDate),
+    getProgressPhotoCount(clientId, startDate, endDate)
+  ]);
+
   // 1. Nutrition
-  const nutritionPlan = connection ? await prisma.dietPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" } }) : null;
-  const nutritionCurrent = await getNutritionHistorySummary(clientId, startDate, endDate);
-  const nutritionPrev = await getNutritionHistorySummary(clientId, prevStartDate, prevEndDate);
-  
   let nutritionSection = null;
   if (nutritionPlan || nutritionCurrent.daysLogged > 0 || !connection) {
     nutritionSection = {
@@ -142,10 +164,6 @@ export async function getClientReport(
   }
 
   // 2. Workouts
-  const workoutPlan = connection ? await prisma.workoutPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" } }) : null;
-  const workoutCountCurr = await getWorkoutCount(clientId, startDate, endDate);
-  const workoutCountPrev = await getWorkoutCount(clientId, prevStartDate, prevEndDate);
-
   let workoutSection = null;
   if (workoutPlan || workoutCountCurr > 0 || !connection) {
     workoutSection = {
@@ -155,10 +173,6 @@ export async function getClientReport(
   }
 
   // 3. Yoga
-  const yogaPlan = connection ? await prisma.yogaPlan.findFirst({ where: { coachClientConnectionId: connection.id, status: "ACTIVE" } }) : null;
-  const yogaCountCurr = await getYogaCount(clientId, startDate, endDate);
-  const yogaCountPrev = await getYogaCount(clientId, prevStartDate, prevEndDate);
-
   let yogaSection = null;
   if (yogaPlan || yogaCountCurr > 0 || !connection) {
     yogaSection = {
@@ -168,11 +182,6 @@ export async function getClientReport(
   }
 
   // 4. Habits
-  const activeHabitPlan = connection ? await prisma.habitPlan.findFirst({
-    where: { coachClientConnectionId: connection.id, status: "ACTIVE" },
-    include: { items: { where: { status: "active" } } }
-  }) : null;
-
   let habitSection = null;
   if (activeHabitPlan && activeHabitPlan.items.length > 0) {
     const completions = await prisma.habitCompletion.findMany({
@@ -201,9 +210,6 @@ export async function getClientReport(
   }
 
   // 5. Check-ins (Sleep)
-  const checkinsCurr = await getCheckinStats(clientId, startDate, endDate);
-  const checkinsPrev = await getCheckinStats(clientId, prevStartDate, prevEndDate);
-  
   let checkinsSection = null;
   if (checkinsCurr.totalDays > 0) {
     checkinsSection = {
@@ -217,8 +223,6 @@ export async function getClientReport(
   }
 
   // 6. Measurements / Weight
-  const weightHistoryCurr = await getWeightHistory(clientId, startDate, endDate);
-  
   let measurementsSection = null;
   if (weightHistoryCurr.entries.length > 0) {
     const firstWeight = weightHistoryCurr.entries[weightHistoryCurr.entries.length - 1].value;
@@ -231,7 +235,8 @@ export async function getClientReport(
   }
 
   // 7. Progress Photos
-  const photoCountCurr = await getProgressPhotoCount(clientId, startDate, endDate);
+  let photosSection = null;
+  if (photoCountCurr > 0) {
   let photosSection = null;
   if (photoCountCurr > 0) {
     photosSection = { count: photoCountCurr };

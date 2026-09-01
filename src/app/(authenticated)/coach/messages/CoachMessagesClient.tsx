@@ -207,7 +207,7 @@ export function CoachMessagesClient({
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[var(--color-neutral-50)]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[var(--color-neutral-50)]" role="log" aria-live="polite" aria-atomic="false" aria-relevant="additions">
               {messages.length === 0 && (
                 <div className="text-center py-10 text-[var(--color-neutral-400)] text-sm">
                   No messages yet. Send a message to start the conversation!
@@ -234,7 +234,10 @@ export function CoachMessagesClient({
                             : 'bg-white border border-[var(--color-neutral-200)] text-[var(--color-neutral-800)] rounded-bl-sm shadow-sm'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">{msg.body}</p>
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">
+                          <span className="sr-only">{isMine ? "You: " : `${activeThread?.clientName || "Client"}: `}</span>
+                          {msg.body}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1 mt-1">
                         <span className="text-[10px] text-[var(--color-neutral-400)]">

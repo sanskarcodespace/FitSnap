@@ -166,6 +166,9 @@ export async function disconnectClient(connectionId: string) {
       }
     })
 
+    const { invalidateRosterCache } = await import("@/lib/cache/roster-cache")
+    invalidateRosterCache(session.userId)
+
     revalidatePath("/coach")
     return { success: true }
   } catch (error: any) {

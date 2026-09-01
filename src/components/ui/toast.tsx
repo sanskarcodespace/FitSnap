@@ -22,10 +22,10 @@ export function Toast({ title, description, variant = "default", onClose, isVisi
   return (
     <div
       className={cn(
-        "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-[var(--radius-md)] p-4 pr-8 shadow-[var(--shadow-md)] transition-all",
+        "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-[var(--radius-md)] p-4 pr-8 shadow-[var(--shadow-md)] motion-safe:transition-all motion-reduce:transition-none",
         toastVariants[variant]
       )}
-      role="status"
+      role="status" aria-live="polite" aria-atomic="true"
     >
       <div className="grid gap-1">
         {title && <div className="text-[var(--text-body-sm-size)] font-semibold">{title}</div>}

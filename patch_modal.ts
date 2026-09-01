@@ -1,4 +1,7 @@
-import * as React from "react"
+import fs from 'fs';
+const path = 'src/components/ui/modal.tsx';
+
+const newContent = `import * as React from "react"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
 
@@ -116,3 +119,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
     </div>
   )
 }
+`;
+
+fs.writeFileSync(path, newContent);
+console.log("Rewrote modal.tsx");
