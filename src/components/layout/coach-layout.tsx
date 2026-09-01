@@ -10,9 +10,12 @@ import {
   MessageCircle,
   LogOut,
   Menu,
-  X
+  X,
+  Settings
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { UnreadMessagesBadge } from "@/components/ui/unread-messages-badge"
+import { MessageAlerts } from "@/components/ui/message-alerts"
 
 export interface CoachLayoutProps {
   user: {
@@ -27,7 +30,8 @@ export interface CoachLayoutProps {
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/coach", icon: LayoutDashboard },
   { name: "Profile", href: "/coach/profile", icon: User },
-  { name: "Messages", href: "/coach/messages", icon: MessageCircle },
+  { name: "Messages", href: "/coach/messages", icon: MessageCircle, badge: true },
+  { name: "Settings", href: "/coach/settings", icon: Settings },
 ]
 
 export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
@@ -70,7 +74,10 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
                     : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-900)]"
                 )}
               >
-                <item.icon className="w-5 h-5" />
+                <div className="relative">
+                  <item.icon className="w-5 h-5" />
+                  {item.badge && <UnreadMessagesBadge />}
+                </div>
                 {item.name}
               </Link>
             )
@@ -137,7 +144,10 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
                       : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
                   )}
                 >
-                  <item.icon className="w-5 h-5" />
+                  <div className="relative">
+                    <item.icon className="w-5 h-5" />
+                    {item.badge && <UnreadMessagesBadge />}
+                  </div>
                   {item.name}
                 </Link>
               )
@@ -180,6 +190,8 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
           {children}
         </main>
       </div>
+
+      <MessageAlerts />
     </div>
   )
 }

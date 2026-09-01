@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
+import { PeriodSelector } from "@/components/ui/period-selector";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { TrendChart } from "@/components/ui/trend-chart";
@@ -129,73 +130,20 @@ export function BodyMeasurementsTab() {
 
       {/* Period Controls */}
       <div className="flex flex-col md:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
-        <div className="w-full md:w-auto">
-          <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Time Period</label>
-          <Select 
-            value={period} 
-            onChange={(e) => setPeriod(e.target.value as any)}
-            className="w-full md:w-40"
-          >
-            <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
-            <option value="custom">Custom Range</option>
-          </Select>
-        </div>
-
-        {period === "custom" && (
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div>
-              <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Start</label>
-              <Input 
-                type="date" 
-                value={startDate} 
-                onChange={e => setStartDate(e.target.value)}
-                max={endDate}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">End</label>
-              <Input 
-                type="date" 
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)}
-                max={todayStr}
-              />
-            </div>
-          </div>
-        )}
+        <PeriodSelector 
+          period={period}
+          onPeriodChange={(p, s, e) => {
+            setPeriod(p as any)
+            setStartDate(s)
+            setEndDate(e)
+            loadData()
+          }}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+        />
       </div>
-
-      {/* Main Content Area */}
-      {!summary?.mostRecentValue && !isLoading ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-          <p className="text-[var(--color-neutral-500)]">No {metric} measurements logged yet.</p>
-          <Button variant="outline" onClick={() => setIsLogDialogOpen(true)}>Log Measurement</Button>
-        </div>
-      ) : (
-        <div className="bg-white p-4 sm:p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
-          <TrendChart 
-            data={chartData} 
-            metricColor="var(--color-secondary-500)"
-          />
-          
-          {/* Stats Row */}
-          <div className="flex gap-6 mt-6 pt-6 border-t border-[var(--color-neutral-100)]">
-            <div>
-              <p className="text-xs font-semibold text-[var(--color-neutral-500)] uppercase tracking-wider">Average</p>
-              <p className="text-lg font-bold text-[var(--color-neutral-900)] mt-1">
-                {summary?.periodAverage != null ? `${summary.periodAverage.toFixed(1)} ${summary?.preferredMeasurementUnit}` : "-"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--color-neutral-500)] uppercase tracking-wider">Change</p>
-              <p className="text-lg font-bold text-[var(--color-neutral-900)] mt-1">
-                {summary?.periodChange != null ? `${summary.periodChange > 0 ? '+' : ''}${summary.periodChange.toFixed(1)} ${summary?.preferredMeasurementUnit}` : "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* History List */}
       {summary?.entries && summary.entries.length > 0 && (

@@ -14,6 +14,10 @@ import {
   LogOut,
   User
 } from "lucide-react"
+import { UnreadMessagesBadge } from "@/components/ui/unread-messages-badge"
+import { MessageAlerts } from "@/components/ui/message-alerts"
+import { NotificationCenter } from "@/components/ui/notification-center"
+import { Settings } from "lucide-react"
 
 export interface ClientLayoutProps {
   user: {
@@ -80,10 +84,13 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
         <div className="flex items-center gap-2 md:gap-4">
           <Link 
             href="/client/messages" 
-            className="p-2 text-[var(--color-neutral-600)] hover:text-black hover:bg-[var(--color-neutral-100)] rounded-full transition-colors"
+            className="relative p-2 text-[var(--color-neutral-600)] hover:text-black hover:bg-[var(--color-neutral-100)] rounded-full transition-colors"
           >
             <MessageCircle className="w-5 h-5" />
+            <UnreadMessagesBadge />
           </Link>
+
+          <NotificationCenter />
           
           {/* Custom Profile Dropdown */}
           <div className="relative">
@@ -113,6 +120,14 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
                     <User className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Link>
+                  <Link 
+                    href="/client/settings"
+                    className="flex items-center px-4 py-2 text-sm text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)]"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Account Settings
+                  </Link>
                   {onLogout && (
                     <button
                       onClick={() => {
@@ -132,10 +147,12 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-5xl mx-auto p-4 pb-24 md:pb-8">
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl mx-auto w-full pt-16 px-4 pb-24 md:pb-8">
         {children}
       </main>
+
+      <MessageAlerts />
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--color-neutral-200)] bg-white safe-area-pb">

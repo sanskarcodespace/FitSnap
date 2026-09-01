@@ -36,11 +36,13 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
   try {
     // Process with sharp (this actually validates content is a real image)
     const processedBuffer = await sharp(buffer)
+      .rotate() // auto-rotates based on EXIF before stripping
       .resize(maxWidth, maxHeight, {
         fit: "inside",
         withoutEnlargement: true
       })
       .jpeg({ quality }) // convert everything to a reasonable JPEG for consistent storage
+      .withMetadata(false) // explicitly strip EXIF/ICC metadata
       .toBuffer()
 
     // Ensure directory exists

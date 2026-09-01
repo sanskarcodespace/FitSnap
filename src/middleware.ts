@@ -3,6 +3,16 @@ import type { NextRequest } from 'next/server'
 import { verifyToken } from './lib/auth/jwt'
 
 export async function middleware(request: NextRequest) {
+  // Enforce HTTPS in production
+  if (
+    process.env.NODE_ENV === 'production' &&
+    request.headers.get('x-forwarded-proto') !== 'https' &&
+    !request.nextUrl.hostname.includes('localhost')
+  ) {
+    const httpsUrl = request.url.replace(/^http:/, 'https:')
+    return NextResponse.redirect(new URL(httpsUrl))
+  }
+
   const token = request.cookies.get('session_token')?.value
   
   // Public routes

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { PeriodSelector } from "@/components/ui/period-selector";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/states";
@@ -509,55 +510,18 @@ export function ClientHabitsView({
         <TabsContent value="history" className="space-y-6 mt-6">
           {/* Period Selector */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[var(--color-neutral-600)]">Show:</span>
-              <div className="flex border border-[var(--color-neutral-200)] rounded-lg overflow-hidden bg-[var(--color-neutral-50)]">
-                <button
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    period === "7" ? "bg-white text-[var(--color-primary-800)] shadow-sm" : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
-                  }`}
-                  onClick={() => setPeriod("7")}
-                >
-                  Last 7 Days
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    period === "30" ? "bg-white text-[var(--color-primary-800)] shadow-sm" : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
-                  }`}
-                  onClick={() => setPeriod("30")}
-                >
-                  Last 30 Days
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    period === "custom" ? "bg-white text-[var(--color-primary-800)] shadow-sm" : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
-                  }`}
-                  onClick={() => setPeriod("custom")}
-                >
-                  Custom Range
-                </button>
-              </div>
-            </div>
-
-            {period === "custom" && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  className="px-2.5 py-1.5 text-xs border border-[var(--color-neutral-300)] rounded-md outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
-                  value={historyStart}
-                  onChange={(e) => setHistoryStart(e.target.value)}
-                  max={historyEnd}
-                />
-                <span className="text-xs text-[var(--color-neutral-400)]">to</span>
-                <input
-                  type="date"
-                  className="px-2.5 py-1.5 text-xs border border-[var(--color-neutral-300)] rounded-md outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
-                  value={historyEnd}
-                  onChange={(e) => setHistoryEnd(e.target.value)}
-                  max={todayStr}
-                />
-              </div>
-            )}
+            <PeriodSelector 
+              period={period}
+              onPeriodChange={(p, s, e) => {
+                setPeriod(p as any)
+                setHistoryStart(s)
+                setHistoryEnd(e)
+              }}
+              startDate={historyStart}
+              onStartDateChange={setHistoryStart}
+              endDate={historyEnd}
+              onEndDateChange={setHistoryEnd}
+            />
           </div>
 
           {/* Active Habits Section */}

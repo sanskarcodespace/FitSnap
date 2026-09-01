@@ -1,14 +1,79 @@
-import { EmptyState } from "@/components/ui/states"
-import { MessageCircle } from "lucide-react"
+import { cookies } from "next/headers"
+import { verifyToken } from "@/lib/auth/jwt"
+import { redirect } from "next/navigation"
+import prisma from "@/lib/db/prisma"
+import { CoachMessagesClient } from "./CoachMessagesClient"
 
-export default function CoachMessagesPage() {
+export default async function CoachMessagesPage() {
+  const token = (await cookies()).get("session_token")?.value
+  if (!token) redirect("/login")
+  const session = await verifyToken(token)
+  if (!session || session.role !== "COACH") redirect("/client")
+
+  // Fetch all active connections for this coach
+  const connections = await prisma.coachClientConnection.findMany({
+    where: {
+      coachId: session.userId,
+      status: "ACTIVE"
+    },
+    include: {
+      client: {
+        include: { clientProfile: true }
+      },
+      conversation: {
+        include: {
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1
+          },
+          _count: {
+            select: {
+              messages: {
+                where: {
+                  senderId: { not: session.userId },
+                  readAt: null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      invitedAt: "desc"
+    }
+  })
+
+  // Format the data for the client component
+  const threads = connections.map(c => {
+    // Determine the name to show
+    let name = c.invitedEmail
+    if (c.invitedName) {
+      name = c.invitedName
+    }
+
+    const lastMessage = c.conversation?.messages[0]
+    
+    return {
+      connectionId: c.id,
+      conversationId: c.conversation?.id,
+      clientName: name,
+      clientAvatar: c.client?.clientProfile?.profilePhoto || undefined,
+      unreadCount: c.conversation?._count.messages || 0,
+      lastMessageAt: lastMessage?.createdAt || c.invitedAt,
+      lastMessageBody: lastMessage?.body || null,
+      lastMessageSenderId: lastMessage?.senderId || null,
+    }
+  })
+
+  // Sort by last message time descending
+  threads.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime())
+
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-24">
-      <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">Messages</h1>
-      <EmptyState 
-        icon={<MessageCircle className="w-12 h-12 text-[var(--color-neutral-400)]" />} 
-        title="Messaging coming soon" 
-        description="Soon you'll be able to chat with all your clients directly from here." 
+    <div className="h-[calc(100vh-140px)] md:h-[calc(100vh-64px)] flex flex-col md:-m-8 -m-4">
+      <CoachMessagesClient 
+        initialThreads={threads} 
+        currentUserId={session.userId} 
       />
     </div>
   )

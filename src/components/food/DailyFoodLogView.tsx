@@ -14,6 +14,8 @@ type DailyFoodLogViewProps = {
   onEditMeal?: (mealId: string) => void;
   onAddWater?: (amountMl: number) => void;
   onUndoWater?: () => void;
+  coachConnectionId?: string; // If provided, adds a 'Message about this' link for the coach
+  date?: string; // Optional date for the summary
   isPending?: boolean;
 }
 
@@ -26,7 +28,9 @@ export function DailyFoodLogView({
   onEditMeal,
   onAddWater,
   onUndoWater,
-  isPending = false
+  isPending = false,
+  coachConnectionId,
+  date
 }: DailyFoodLogViewProps) {
   
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null)
@@ -169,6 +173,16 @@ export function DailyFoodLogView({
             </div>
           </div>
           
+          <div className="mt-6 flex justify-center border-t border-[var(--color-neutral-100)] pt-5">
+            <a 
+              href="/client/assistant" 
+              className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] transition-colors hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] rounded px-2 py-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
+              Ask the Nutrition Assistant
+            </a>
+          </div>
+          
           {/* Additional Details */}
           <details className="mt-6 group border border-[var(--color-neutral-200)] rounded-lg">
             <summary className="cursor-pointer font-medium text-sm text-[var(--color-neutral-700)] bg-[var(--color-neutral-50)] px-4 py-3 rounded-lg group-open:rounded-b-none group-open:border-b border-[var(--color-neutral-200)] flex justify-between items-center hover:bg-[var(--color-neutral-100)] transition-colors">
@@ -294,6 +308,15 @@ export function DailyFoodLogView({
                               Delete
                             </Button>
                           </div>
+                        )}
+                        {coachConnectionId && (
+                          <a 
+                            href={`/coach/messages?connectionId=${coachConnectionId}&text=${encodeURIComponent(`Regarding your ${meal.mealType} food log on ${date ? new Date(date).toLocaleDateString() : 'this day'}: `)}`}
+                            className="text-xs text-[var(--color-primary-600)] hover:underline inline-flex items-center gap-1 font-medium"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                            Message about this
+                          </a>
                         )}
                       </div>
                     </div>

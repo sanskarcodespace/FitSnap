@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/states"
 import { Utensils, Dumbbell, Calendar, Target, FileText, CheckSquare, Activity, MessageCircle } from "lucide-react"
 import { NutritionTargetsForm } from "./NutritionTargetsForm"
@@ -19,6 +20,9 @@ import { CoachYogaTab } from "./CoachYogaTab"
 import { CoachCheckinsTab } from "./CoachCheckinsTab"
 import { CoachProgressTab } from "./CoachProgressTab"
 import { CoachHabitsTab } from "./CoachHabitsTab"
+import { getClientActivitySignals } from "@/lib/data/activity-signals"
+import { getClientAttentionFlags } from "@/lib/data/attention-flags"
+import { AlertCircle } from "lucide-react"
 
 const GOALS: Record<string, string> = {
   "WEIGHT_LOSS": "Weight Loss",
@@ -97,6 +101,15 @@ export default async function ClientDetailPage({
   }
   
   const isActive = connection.status === "ACTIVE";
+  const clientProfile = connection.client?.clientProfile;
+  const isSetupPending = !clientProfile?.onboardingCompleted;
+
+  let signals = null;
+  let attentionFlags: any[] = [];
+  if (connection.clientId) {
+    signals = await getClientActivitySignals(session.userId, connection.clientId);
+    attentionFlags = await getClientAttentionFlags(session.userId, connection.clientId);
+  }
 
   const clientName = connection.client?.email?.split('@')[0] || "Client"
   const profile = connection.client?.clientProfile
@@ -133,6 +146,8 @@ export default async function ClientDetailPage({
     orderBy: { date: 'desc' }
   });
 
+  // Signals and attention flags are already fetched above.
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
       {/* Header Profile Summary */}
@@ -164,6 +179,14 @@ export default async function ClientDetailPage({
               Since {new Date(connection.acceptedAt || connection.invitedAt).toLocaleDateString()}
             </Badge>
           </div>
+        </div>
+        <div className="md:ml-auto md:self-center mt-4 md:mt-0">
+          <Link href={`/coach/clients/${connectionId}/report`}>
+            <Button className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              View Report
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -214,17 +237,129 @@ export default async function ClientDetailPage({
               </CardContent>
             </Card>
 
+            {/* Needs Attention Panel */}
+            {attentionFlags.length > 0 && (
+              <Card className="border-[var(--color-accent-200)] shadow-sm bg-[var(--color-accent-50)]">
+                <CardHeader className="pb-3 border-b border-[var(--color-accent-100)]">
+                  <CardTitle className="flex items-center gap-2 text-lg text-[var(--color-accent-800)]">
+                    <AlertCircle className="w-5 h-5" />
+                    Needs Attention
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <ul className="space-y-3">
+                    {attentionFlags.map((flag) => (
+                      <li key={flag.id} className="flex gap-3">
+                        <div className="mt-0.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent-500)] mt-2" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-[var(--color-accent-900)] text-sm">{flag.label}</p>
+                          <div className="text-xs text-[var(--color-accent-700)] mt-0.5 leading-relaxed">
+                            {flag.reason}
+                            <Link 
+                              href={`/coach/messages?connectionId=${connection.id}&text=${encodeURIComponent(`Regarding your ${flag.label}: `)}`}
+                              className="ml-2 text-[var(--color-primary-600)] hover:underline inline-flex items-center gap-1 font-medium"
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                              Message about this
+                            </Link>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Activity className="w-5 h-5 text-[var(--color-primary-600)]" />
-                  Recent Activity
+                  Activity Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center p-6 bg-[var(--color-neutral-50)] rounded border border-dashed border-[var(--color-neutral-300)]">
-                  <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">Activity feed coming in future blocks.</p>
-                </div>
+                {signals ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Last Active</p>
+                      <p className="font-medium mt-1 text-[var(--color-neutral-900)]">
+                        {signals.lastActivityAt ? new Date(signals.lastActivityAt).toLocaleDateString() : "No activity"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Food Logging (7d)</p>
+                      <p className="font-medium mt-1">
+                        <Link href="#nutrition" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                          {signals.foodLoggingDays7d} / 7 days
+                        </Link>
+                        {signals.proteinAdherencePercent7d !== null && (
+                          <span className="text-sm text-[var(--color-neutral-500)] ml-1 font-normal">
+                            ({Math.round(signals.proteinAdherencePercent7d)}% pro)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Workouts (7d)</p>
+                      <p className="font-medium mt-1">
+                        <Link href="#plans" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                          {signals.workoutCount7d} logs
+                        </Link>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Yoga (7d)</p>
+                      <p className="font-medium mt-1">
+                        <Link href="#plans" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                          {signals.yogaCount7d} logs
+                        </Link>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Check-ins (7d)</p>
+                      <p className="font-medium mt-1">
+                        <Link href="#checkins" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                          {signals.checkInDays7d} / 7 days
+                        </Link>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Weight Change (30d)</p>
+                      <p className="font-medium mt-1">
+                        <Link href="#progress" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                          {!signals.hasWeightIn30d ? "No logs" : 
+                            signals.weightChange30d === null || signals.weightChange30d === 0 ? "0 change" :
+                            `${signals.weightChange30d > 0 ? '+' : ''}${signals.weightChange30d.toFixed(1)} ${profile?.preferredWeightUnit || 'lbs'}`}
+                        </Link>
+                      </p>
+                    </div>
+                    {signals.lowestHabit7d && (
+                      <div className="col-span-2">
+                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Lowest Habit (7d)</p>
+                        <p className="font-medium mt-1">
+                          <Link href="#habits" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                            {signals.lowestHabit7d.name}: {signals.lowestHabit7d.completed}/{signals.lowestHabit7d.total} days
+                          </Link>
+                        </p>
+                      </div>
+                    )}
+                    <div className="col-span-2">
+                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Latest Progress Photo</p>
+                      <p className="font-medium mt-1">
+                        <Link href="#progress" className="text-[var(--color-primary-700)] hover:underline font-semibold">
+                          {signals.lastProgressPhotoAt ? new Date(signals.lastProgressPhotoAt).toLocaleDateString() : "No photos"}
+                        </Link>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center p-6 bg-[var(--color-neutral-50)] rounded border border-dashed border-[var(--color-neutral-300)]">
+                    <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No activity signals available.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -311,6 +446,8 @@ export default async function ClientDetailPage({
                   <DailyFoodLogView 
                     summary={summary}
                     readOnly={true}
+                    coachConnectionId={connection.id}
+                    date={dateToUse}
                   />
                 </CardContent>
               </Card>

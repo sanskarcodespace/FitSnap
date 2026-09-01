@@ -3,8 +3,9 @@
 import prisma from "@/lib/db/prisma"
 import bcrypt from "bcryptjs"
 import { signToken } from "@/lib/auth/jwt"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { logAuditEvent } from "@/lib/auth/audit"
 
 export async function signup(formData: FormData) {
   const email = formData.get("email") as string
@@ -32,7 +33,28 @@ export async function signup(formData: FormData) {
       }
     })
 
-    const token = await signToken({ userId: user.id, role: user.role })
+    const headersList = await headers()
+    const userAgent = headersList.get("user-agent") || undefined
+    const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-real-ip")
+    // Mask IP address by zeroing last octet for IPv4
+    let ipAddressPartial = ipAddress
+    if (ipAddress) {
+      const parts = ipAddress.split(".")
+      if (parts.length === 4) {
+        parts[3] = "0"
+        ipAddressPartial = parts.join(".")
+      }
+    }
+
+    const token = await signToken({ userId: user.id, role: user.role }, userAgent, ipAddressPartial)
+    
+    await logAuditEvent({
+      eventType: "SIGNUP_SUCCESS",
+      actorUserId: user.id,
+      actorRole: user.role,
+      ipAddressPartial,
+      metadata: { userAgent }
+    })
     
     // Set cookie
     ;(await cookies()).set("session_token", token, {

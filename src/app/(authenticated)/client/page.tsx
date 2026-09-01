@@ -8,6 +8,7 @@ import { getDailyNutritionSummary } from "@/lib/data/nutrition"
 import { ProgressRing, ProgressBar } from "@/components/ui/progress"
 import { DashboardHabitsCard } from "./DashboardHabitsCard"
 import { DashboardCheckinCard } from "./DashboardCheckinCard"
+import { AssistantCard } from "@/components/dashboard/AssistantCard"
 
 export default async function ClientHomePage() {
   const token = (await cookies()).get("session_token")?.value
@@ -159,6 +160,17 @@ export default async function ClientHomePage() {
           </div>
         </section>
 
+        {/* Report Card */}
+        <section className="bg-[var(--color-primary-50)] rounded-xl p-5 shadow-sm border border-[var(--color-primary-200)] flex flex-col justify-center items-center text-center">
+          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-primary-900)] mb-2">Monthly Report</h2>
+          <p className="text-sm text-[var(--color-primary-700)] mb-4">
+            View a comprehensive summary of your progress, nutrition, and habits.
+          </p>
+          <Button variant="default" className="w-full" asChild>
+            <Link href="/client/report?period=month">View Report</Link>
+          </Button>
+        </section>
+
         {/* Food & Nutrition Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
           <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Food & Nutrition</h2>
@@ -222,6 +234,11 @@ export default async function ClientHomePage() {
               </Button>
             </div>
           )}
+        </section>
+
+        {/* Nutrition Assistant Card */}
+        <section className="col-span-full md:col-span-1">
+          <AssistantCard />
         </section>
 
         {/* Today's Plan Card */}
@@ -321,7 +338,9 @@ export default async function ClientHomePage() {
                   <p className="text-xs text-[var(--color-secondary-600)] font-medium">Connected</p>
                 </div>
               </div>
-              <Button disabled variant="secondary" size="sm">Message</Button>
+              <Link href="/client/messages">
+                <Button variant="secondary" size="sm">Message</Button>
+              </Link>
             </div>
           ) : (
             <div className="text-center py-4">

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { TrendChart } from "@/components/ui/trend-chart";
 import { fetchCoachWeightHistory, fetchCoachMeasurementHistory } from "./actions";
 import { WeightHistorySummary, MeasurementHistorySummary, MeasurementType } from "@/lib/progress/history";
+import { PeriodSelector } from "@/components/ui/period-selector";
 import { EmptyState } from "@/components/ui/states";
 import { Activity } from "lucide-react";
 
@@ -250,41 +251,18 @@ export function CoachProgressTab({ clientId }: { clientId: string }) {
     <div className="space-y-6">
       {/* Controls Area */}
       <div className="flex flex-col md:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
-        <div className="w-full md:w-auto">
-          <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Time Period</label>
-          <Select 
-            value={period} 
-            onChange={(e) => setPeriod(e.target.value as any)}
-            className="w-full md:w-40"
-          >
-            <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
-            <option value="custom">Custom Range</option>
-          </Select>
-        </div>
-
-        {period === "custom" && (
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div>
-              <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Start</label>
-              <Input 
-                type="date" 
-                value={startDate} 
-                onChange={e => setStartDate(e.target.value)}
-                max={endDate}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">End</label>
-              <Input 
-                type="date" 
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)}
-                max={todayStr}
-              />
-            </div>
-          </div>
-        )}
+        <PeriodSelector 
+          period={period}
+          onPeriodChange={(p, s, e) => {
+            setPeriod(p as any)
+            setStartDate(s)
+            setEndDate(e)
+          }}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+        />
       </div>
 
       <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="w-full">

@@ -7,6 +7,7 @@ import prisma from "@/lib/db/prisma"
 import { processAndStoreImage } from "@/lib/upload"
 import fs from "fs/promises"
 import path from "path"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 async function getClientSession() {
   const token = (await cookies()).get("session_token")?.value
@@ -16,27 +17,14 @@ async function getClientSession() {
   return session
 }
 
-// Simple in-memory rate limiter for photo uploads (max 10 per minute per user)
-const uploadRateLimits = new Map<string, { count: number, timestamp: number }>()
-
 export async function uploadTempFoodPhoto(formData: FormData) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
 
   // Rate Limiting Check
-  const now = Date.now()
-  const userRate = uploadRateLimits.get(session.userId)
-  if (userRate) {
-    if (now - userRate.timestamp < 60000) {
-      if (userRate.count >= 10) {
-        return { error: "Too many uploads. Please try again later." }
-      }
-      userRate.count += 1
-    } else {
-      uploadRateLimits.set(session.userId, { count: 1, timestamp: now })
-    }
-  } else {
-    uploadRateLimits.set(session.userId, { count: 1, timestamp: now })
+  const rateLimit = checkRateLimit(`upload_photo_${session.userId}`, { windowMs: 60000, max: 10 })
+  if (!rateLimit.success) {
+    return { error: "Too many uploads. Please try again later." }
   }
 
   const file = formData.get("photo") as File
@@ -62,27 +50,14 @@ export async function uploadTempFoodPhoto(formData: FormData) {
 
 import { analyzeFoodImage } from "@/lib/ai/foodRecognition"
 
-// Simple in-memory rate limiter for AI calls (max 5 per minute per user)
-const aiRateLimits = new Map<string, { count: number, timestamp: number }>()
-
 export async function analyzeFoodPhoto(photoReference: string) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
 
   // Rate Limiting Check
-  const now = Date.now()
-  const userRate = aiRateLimits.get(session.userId)
-  if (userRate) {
-    if (now - userRate.timestamp < 60000) {
-      if (userRate.count >= 5) {
-        return { error: "Too many analysis requests. Please try again later." }
-      }
-      userRate.count += 1
-    } else {
-      aiRateLimits.set(session.userId, { count: 1, timestamp: now })
-    }
-  } else {
-    aiRateLimits.set(session.userId, { count: 1, timestamp: now })
+  const rateLimit = checkRateLimit(`analyze_food_${session.userId}`, { windowMs: 60000, max: 5 })
+  if (!rateLimit.success) {
+    return { error: "Too many analysis requests. Please try again later." }
   }
 
   if (!photoReference || !photoReference.includes(`/api/private-images/temp/${session.userId}/`)) {

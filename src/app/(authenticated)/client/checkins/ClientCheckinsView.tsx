@@ -5,7 +5,9 @@ import { LogCheckinModal } from "./LogCheckinModal";
 import { getCheckinStats, deleteDailyCheckIn } from "./actions";
 import { TrendChart } from "@/components/ui/trend-chart";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { CheckCircle2, Circle, Clock, MessageSquare, AlertCircle, FileText } from "lucide-react";
+import { PeriodSelector } from "@/components/ui/period-selector";
 import { Calendar, Trash2, Edit2, ClipboardList, TrendingUp } from "lucide-react";
 
 export function generateDateRange(start: string, end: string): string[] {
@@ -188,49 +190,19 @@ export function ClientCheckinsView({ clientId }: ClientCheckinsViewProps) {
 
                 {/* Period Selector */}
                 <div className="flex flex-wrap items-center gap-2 bg-[var(--color-neutral-50)] p-1 rounded-lg border border-[var(--color-neutral-200)] self-start">
-                  <button
-                    onClick={() => setPeriod("7")}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      period === "7" ? "bg-white text-black shadow-sm" : "text-[var(--color-neutral-500)] hover:text-black"
-                    }`}
-                  >
-                    Last 7 Days
-                  </button>
-                  <button
-                    onClick={() => setPeriod("30")}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      period === "30" ? "bg-white text-black shadow-sm" : "text-[var(--color-neutral-500)] hover:text-black"
-                    }`}
-                  >
-                    Last 30 Days
-                  </button>
-                  <button
-                    onClick={() => setPeriod("custom")}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      period === "custom" ? "bg-white text-black shadow-sm" : "text-[var(--color-neutral-500)] hover:text-black"
-                    }`}
-                  >
-                    Custom
-                  </button>
+                  <PeriodSelector 
+                    period={period}
+                    onPeriodChange={(p, s, e) => {
+                      setPeriod(p as any)
+                      setCustomStart(s)
+                      setCustomEnd(e)
+                    }}
+                    startDate={customStart}
+                    onStartDateChange={setCustomStart}
+                    endDate={customEnd}
+                    onEndDateChange={setCustomEnd}
+                  />
                 </div>
-
-                {period === "custom" && (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={customStart}
-                      onChange={e => setCustomStart(e.target.value)}
-                      className="text-sm border border-[var(--color-neutral-300)] rounded px-2 py-1"
-                    />
-                    <span className="text-[var(--color-neutral-500)]">to</span>
-                    <input
-                      type="date"
-                      value={customEnd}
-                      onChange={e => setCustomEnd(e.target.value)}
-                      className="text-sm border border-[var(--color-neutral-300)] rounded px-2 py-1"
-                    />
-                  </div>
-                )}
               </div>
             </CardHeader>
             <CardContent>

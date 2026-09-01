@@ -4,6 +4,8 @@ import { verifyToken } from "@/lib/auth/jwt"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ClientsSection } from "./ClientsSection"
+import { getClientActivitySignals } from "@/lib/data/activity-signals"
+import { getClientAttentionFlags } from "@/lib/data/attention-flags"
 
 export default async function CoachDashboardPage(
   props: {
@@ -27,10 +29,11 @@ export default async function CoachDashboardPage(
   }
 
   // Parse search params
-  const q = typeof searchParams.q === 'string' ? searchParams.q.toLowerCase() : ''
-  const goalFilter = typeof searchParams.goal === 'string' ? searchParams.goal : ''
-  const statusFilter = typeof searchParams.status === 'string' ? searchParams.status : ''
-  const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'recent'
+  const q = (searchParams.q as string)?.toLowerCase() || ""
+  const sort = (searchParams.sort as string)?.toLowerCase() || "recent"
+  const statusFilter = (searchParams.status as string)?.toUpperCase() || ""
+  const goalFilter = (searchParams.goal as string)?.toUpperCase() || ""
+  const attentionFilter = (searchParams.attention as string)?.toUpperCase() || ""
 
   // Fetch all ACTIVE connections for this coach to apply filtering/sorting in memory or DB
   // Since we need to filter on client profile data (goal, onboardingCompleted), it's easier to fetch included data.
@@ -48,8 +51,22 @@ export default async function CoachDashboardPage(
     }
   })
 
+  // Fetch signals for all active connections
+  const activeConnectionsWithSignals = await Promise.all(
+    activeConnectionsRaw.map(async (conn) => {
+      if (!conn.clientId) return { ...conn, signals: null, attentionFlags: [] };
+      try {
+        const signals = await getClientActivitySignals(user.id, conn.clientId);
+        const attentionFlags = await getClientAttentionFlags(user.id, conn.clientId);
+        return { ...conn, signals, attentionFlags };
+      } catch (err) {
+        return { ...conn, signals: null, attentionFlags: [] };
+      }
+    })
+  );
+
   // Apply filters
-  let filteredActive = activeConnectionsRaw.filter(conn => {
+  let filteredActive = activeConnectionsWithSignals.filter(conn => {
     const clientUser = conn.client
     const clientProfile = clientUser?.clientProfile
     const clientName = clientUser?.email?.split('@')[0] || "Client"
@@ -65,13 +82,34 @@ export default async function CoachDashboardPage(
     // Status filter
     if (statusFilter) {
       const isPendingSetup = !clientProfile?.onboardingCompleted
+      
       if (statusFilter === "ACTIVE" && isPendingSetup) return false
       if (statusFilter === "PENDING_SETUP" && !isPendingSetup) return false
+      
+      if (statusFilter === "INACTIVE_7" || statusFilter === "INACTIVE_14") {
+        if (isPendingSetup) return false; // Inactive logic applies to setup clients? Usually just fully active ones.
+        const daysThreshold = statusFilter === "INACTIVE_7" ? 7 : 14;
+        
+        if (!conn.signals || !conn.signals.lastActivityAt) {
+          // No activity ever
+          return true;
+        } else {
+          const lastActivity = new Date(conn.signals.lastActivityAt);
+          const diffMs = new Date().getTime() - lastActivity.getTime();
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          if (diffDays < daysThreshold) return false;
+        }
+      }
     }
 
     // Goal filter
     if (goalFilter) {
       if (clientProfile?.goal !== goalFilter) return false
+    }
+
+    // Attention filter
+    if (attentionFilter === "NEEDS_ATTENTION") {
+      if (!conn.attentionFlags || conn.attentionFlags.length === 0) return false;
     }
 
     return true
@@ -84,12 +122,25 @@ export default async function CoachDashboardPage(
     const nameA = (a.client?.email?.split('@')[0] || "").toLowerCase()
     const nameB = (b.client?.email?.split('@')[0] || "").toLowerCase()
 
-    if (sort === "name") {
+    if (sort === "attention_first") {
+      const countA = a.attentionFlags?.length || 0;
+      const countB = b.attentionFlags?.length || 0;
+      if (countA !== countB) return countB - countA;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    } else if (sort === "name") {
       return nameA.localeCompare(nameB)
     } else if (sort === "goal") {
       const goalA = profileA?.goal || ""
       const goalB = profileB?.goal || ""
       return goalA.localeCompare(goalB)
+    } else if (sort === "activity_desc" || sort === "activity_asc") {
+      const timeA = a.signals?.lastActivityAt ? new Date(a.signals.lastActivityAt).getTime() : 0;
+      const timeB = b.signals?.lastActivityAt ? new Date(b.signals.lastActivityAt).getTime() : 0;
+      if (sort === "activity_desc") {
+        return timeB - timeA; // Most recent first
+      } else {
+        return timeA - timeB; // Least recent first
+      }
     } else {
       // default: recent
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -120,7 +171,7 @@ export default async function CoachDashboardPage(
       <ClientsSection 
         pending={pendingConnections} 
         active={filteredActive as any} 
-        searchParams={{q, goal: goalFilter, status: statusFilter, sort}}
+        searchParams={{q, goal: goalFilter, status: statusFilter, sort, attention: attentionFilter}}
       />
     </div>
   )

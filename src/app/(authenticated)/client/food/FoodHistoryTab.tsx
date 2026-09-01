@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useTransition } from "react"
 import { Button } from "@/components/ui/button"
+import { PeriodSelector } from "@/components/ui/period-selector"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/states"
 import { TrendChart } from "@/components/ui/trend-chart"
@@ -151,125 +152,20 @@ export function FoodHistoryTab() {
       
       {/* Controls */}
       <div className="flex flex-col md:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
-        <div className="w-full md:w-auto">
-          <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Time Period</label>
-          <Select 
-            value={period} 
-            onChange={(e) => setPeriod(e.target.value as any)}
-            className="w-full md:w-40"
-          >
-            <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
-            <option value="custom">Custom Range</option>
-          </Select>
-        </div>
-
-        {period === "custom" && (
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div>
-              <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Start</label>
-              <Input 
-                type="date" 
-                value={startDate} 
-                onChange={e => setStartDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">End</label>
-              <Input 
-                type="date" 
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            <Button className="mb-0" onClick={handleCustomSearch} disabled={isPending}>
-              Apply
-            </Button>
-          </div>
-        )}
-
-        <div className="w-full md:w-auto md:ml-auto">
-          <label className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1.5 block">Metric</label>
-          <Select 
-            value={metric} 
-            onChange={(e) => setMetric(e.target.value as any)}
-            className="w-full md:w-40"
-          >
-            <option value="calories">Calories</option>
-            <option value="protein">Protein</option>
-            <option value="carbs">Carbs</option>
-            <option value="fat">Fat</option>
-            <option value="water">Water</option>
-          </Select>
-        </div>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-[var(--color-error-bg)] text-[var(--color-error-text)] rounded-xl text-sm font-medium">
-          {error}
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="bg-white p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm min-h-[300px] flex flex-col relative">
-        {isPending && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-10 rounded-xl">
-            <Spinner />
-          </div>
-        )}
-
-        {!data && !isPending && !error && (
-          <div className="flex-1 flex items-center justify-center">
-            <Spinner />
-          </div>
-        )}
-
-        {data && !hasAnyData && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <p className="text-lg font-bold text-[var(--color-neutral-800)] mb-1">No data logged</p>
-            <p className="text-[var(--color-neutral-500)] text-sm">No {metric} data logged in this period.</p>
-          </div>
-        )}
-
-        {data && hasAnyData && (
-          <div className="space-y-6">
-            <TrendChart 
-              data={chartData}
-              referenceLine={getTargetLine()}
-              metricColor={getMetricColor()}
-              yAxisLabel={formatUnit(metric)}
-            />
-
-            {!data.hasActiveConnection && (
-              <p className="text-xs text-center text-[var(--color-neutral-500)] mt-2">
-                You are currently disconnected from your coach. Your historical data is shown without a target line.
-              </p>
-            )}
-            {data.hasActiveConnection && !data.hasTarget && (
-              <p className="text-xs text-center text-[var(--color-neutral-500)] mt-2">
-                No target is currently set by your coach.
-              </p>
-            )}
-
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--color-neutral-100)]">
-              <div className="text-center p-4 rounded-xl bg-[var(--color-neutral-50)]">
-                <p className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1 uppercase tracking-wider">Avg {metric}</p>
-                <p className="text-2xl font-bold text-[var(--color-neutral-800)]">
-                  {getAverage()} <span className="text-sm font-medium text-[var(--color-neutral-500)]">{formatUnit(metric)}/day</span>
-                </p>
-              </div>
-              <div className="text-center p-4 rounded-xl bg-[var(--color-neutral-50)]">
-                <p className="text-xs font-semibold text-[var(--color-neutral-500)] mb-1 uppercase tracking-wider">Days Logged</p>
-                <p className="text-2xl font-bold text-[var(--color-neutral-800)]">
-                  {metric === "water" ? chartData.filter(d => d.isLogged).length : data.daysLogged} 
-                  <span className="text-sm font-medium text-[var(--color-neutral-500)]"> / {data.daysInRange}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <PeriodSelector 
+          period={period}
+          onPeriodChange={(p, s, e) => {
+            setPeriod(p as any)
+            setStartDate(s)
+            setEndDate(e)
+            fetchData(s, e)
+          }}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
+          onApplyCustom={handleCustomSearch}
+        />
       </div>
     </div>
   )

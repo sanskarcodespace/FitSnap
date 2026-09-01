@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { InviteClientModal } from "./InviteClientModal"
 import { resendInvitation, cancelInvitation, disconnectClient } from "./actions"
 import Link from "next/link"
+import type { ClientActivitySignals } from "@/lib/data/activity-signals"
+import type { AttentionFlag } from "@/lib/data/attention-flags"
 
 type Connection = {
   id: string
@@ -24,6 +26,8 @@ type Connection = {
       goal: string | null
     } | null 
   } | null
+  signals?: ClientActivitySignals | null
+  attentionFlags?: AttentionFlag[] | null
 }
 
 const GOALS = [
@@ -42,7 +46,7 @@ export function ClientsSection({
 }: { 
   pending: Connection[], 
   active: Connection[],
-  searchParams: {q: string, goal: string, status: string, sort: string}
+  searchParams: {q: string, goal: string, status: string, sort: string, attention: string}
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -132,6 +136,17 @@ export function ClientsSection({
               <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
               <option value="PENDING_SETUP">Profile Setup Pending</option>
+              <option value="INACTIVE_7">Inactive 7+ Days</option>
+              <option value="INACTIVE_14">Inactive 14+ Days</option>
+            </select>
+
+            <select 
+              className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+              value={searchParams.attention || ""}
+              onChange={e => handleFilterChange('attention', e.target.value)}
+            >
+              <option value="">All Clients</option>
+              <option value="NEEDS_ATTENTION">Needs Attention Only</option>
             </select>
 
             <select 
@@ -147,12 +162,15 @@ export function ClientsSection({
             
             <select 
               className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 ml-auto"
-              value={searchParams.sort}
+              value={searchParams.sort || "recent"}
               onChange={e => handleFilterChange('sort', e.target.value)}
             >
               <option value="recent">Most Recent</option>
+              <option value="attention_first">Needs Attention First</option>
               <option value="name">Name (A-Z)</option>
               <option value="goal">Goal</option>
+              <option value="activity_desc">Last Active (Most Recent)</option>
+              <option value="activity_asc">Last Active (Least Recent)</option>
             </select>
           </div>
         </CardContent>
@@ -186,6 +204,15 @@ export function ClientsSection({
                     const isSetupPending = !conn.client?.clientProfile?.onboardingCompleted
                     const goal = conn.client?.clientProfile?.goal
                     const goalLabel = GOALS.find(g => g.id === goal)?.label
+                    
+                    let lastActiveDisplay = "No activity yet";
+                    if (conn.signals?.lastActivityAt) {
+                      const diffMs = new Date().getTime() - new Date(conn.signals.lastActivityAt).getTime();
+                      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                      if (diffDays === 0) lastActiveDisplay = "Today";
+                      else if (diffDays === 1) lastActiveDisplay = "Yesterday";
+                      else lastActiveDisplay = `${diffDays} days ago`;
+                    }
 
                     return (
                       <li key={conn.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
@@ -213,6 +240,16 @@ export function ClientsSection({
                                   )}
                                 </>
                               )}
+                              <Badge variant="secondary" className="font-normal text-xs text-[var(--color-neutral-600)] border-dashed border-[var(--color-neutral-300)]">
+                                Last Active: {lastActiveDisplay}
+                              </Badge>
+                              {!isSetupPending && conn.attentionFlags && conn.attentionFlags.length > 0 && (
+                                <Badge className="bg-[var(--color-accent-500)] text-white hover:bg-[var(--color-accent-600)] border-none">
+                                  Needs Attention · {conn.attentionFlags.length}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
                               <span className="text-[10px] text-[var(--color-neutral-400)] ml-1">
                                 Connected {new Date(conn.invitedAt).toLocaleDateString()}
                               </span>

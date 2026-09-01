@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
-import { CheckSquare, Calendar, ChevronRight, ChevronLeft, History, Plus, Trash2, Edit, AlertCircle, Eye, Sparkles } from "lucide-react";
+import { CheckCircle2, Circle, Trophy, Flame, Play, Square, FastForward, Check, Calendar, Activity, XCircle, CheckSquare, ChevronRight, ChevronLeft, History, Plus, Trash2, Edit, AlertCircle, Eye, Sparkles } from "lucide-react";
+import { PeriodSelector } from "@/components/ui/period-selector";
 import { createHabitPlan, updateHabitPlan, archiveAndStartNewHabitPlan, HabitPlanInput, HabitPlanItemInput } from "./plan/habit-actions";
 import { useRouter } from "next/navigation";
 
@@ -656,55 +657,18 @@ export function CoachHabitsTab({
         <CardContent className="p-6 space-y-6">
           {/* Period Selector */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--color-neutral-50)] p-4 rounded-xl border border-[var(--color-neutral-200)]">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[var(--color-neutral-600)]">Show:</span>
-              <div className="flex border border-[var(--color-neutral-200)] rounded-lg overflow-hidden bg-white">
-                <button
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    period === "7" ? "bg-[var(--color-primary-50)] text-[var(--color-primary-800)] shadow-sm" : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
-                  }`}
-                  onClick={() => setPeriod("7")}
-                >
-                  Last 7 Days
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    period === "30" ? "bg-[var(--color-primary-50)] text-[var(--color-primary-800)] shadow-sm" : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
-                  }`}
-                  onClick={() => setPeriod("30")}
-                >
-                  Last 30 Days
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    period === "custom" ? "bg-[var(--color-primary-50)] text-[var(--color-primary-800)] shadow-sm" : "text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]"
-                  }`}
-                  onClick={() => setPeriod("custom")}
-                >
-                  Custom Range
-                </button>
-              </div>
-            </div>
-
-            {period === "custom" && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  className="px-2.5 py-1.5 text-xs border border-[var(--color-neutral-300)] rounded-md outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
-                  value={historyStart}
-                  onChange={(e) => setHistoryStart(e.target.value)}
-                  max={historyEnd}
-                />
-                <span className="text-xs text-[var(--color-neutral-400)]">to</span>
-                <input
-                  type="date"
-                  className="px-2.5 py-1.5 text-xs border border-[var(--color-neutral-300)] rounded-md outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
-                  value={historyEnd}
-                  onChange={(e) => setHistoryEnd(e.target.value)}
-                  max={todayStr}
-                />
-              </div>
-            )}
+            <PeriodSelector 
+              period={period}
+              onPeriodChange={(p, s, e) => {
+                setPeriod(p as any)
+                setHistoryStart(s)
+                setHistoryEnd(e)
+              }}
+              startDate={historyStart}
+              onStartDateChange={setHistoryStart}
+              endDate={historyEnd}
+              onEndDateChange={setHistoryEnd}
+            />
           </div>
 
           <div className="space-y-4">
