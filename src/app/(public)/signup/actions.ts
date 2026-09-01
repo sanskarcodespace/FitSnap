@@ -4,7 +4,6 @@ import prisma from "@/lib/db/prisma"
 import bcrypt from "bcryptjs"
 import { signToken } from "@/lib/auth/jwt"
 import { cookies, headers } from "next/headers"
-import { redirect } from "next/navigation"
 import { logAuditEvent } from "@/lib/auth/audit"
 
 export async function signup(formData: FormData) {
@@ -35,9 +34,9 @@ export async function signup(formData: FormData) {
 
     const headersList = await headers()
     const userAgent = headersList.get("user-agent") || undefined
-    const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-real-ip")
+    const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || undefined
     // Mask IP address by zeroing last octet for IPv4
-    let ipAddressPartial = ipAddress
+    let ipAddressPartial: string | undefined = ipAddress
     if (ipAddress) {
       const parts = ipAddress.split(".")
       if (parts.length === 4) {
@@ -69,6 +68,5 @@ export async function signup(formData: FormData) {
     return { error: "Failed to create account" }
   }
 
-  // Next.js redirect must be outside the try/catch block
-  redirect("/coach/onboarding")
+  return { redirectTo: "/coach/onboarding" }
 }

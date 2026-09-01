@@ -5,7 +5,8 @@ import {
   requestEmailChange, 
   updatePassword, 
   updateClientNotificationPreferences,
-import { autoCaptureClientTimezone } from "../../settings/actions"
+  autoCaptureClientTimezone
+} from "../../settings/actions"
 import ActiveSessions from "@/components/settings/ActiveSessions"
 
 export default function ClientSettings({ user, profile, activeSessions }: { user: any, profile: any, activeSessions: any[] }) {

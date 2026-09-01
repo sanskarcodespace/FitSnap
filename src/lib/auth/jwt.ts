@@ -57,7 +57,17 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
     }
     
     return sessionPayload
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.includes("PrismaClient is not configured to run in Edge Runtime")) {
+      // In Edge runtime (like middleware), we can't use Prisma to hit the DB.
+      // We'll trust the JWT signature and expiration, and return the payload.
+      // The actual DB validation can happen in Node.js Server Components if needed.
+      const { payload } = await jwtVerify(token, SECRET).catch(() => ({ payload: null }))
+      if (payload) {
+        return payload as unknown as SessionPayload
+      }
+    }
+    console.error("JWT Verification Error:", error)
     return null
   }
 }

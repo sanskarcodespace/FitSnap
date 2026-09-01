@@ -42,7 +42,7 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
         withoutEnlargement: true
       })
       .jpeg({ quality }) // convert everything to a reasonable JPEG for consistent storage
-      .withMetadata(false) // explicitly strip EXIF/ICC metadata
+      
       .toBuffer()
 
     // Ensure directory exists
@@ -78,9 +78,3 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
   }
 }
 
-export function getThumbnailUrl(originalUrl: string): string {
-  if (!originalUrl) return ""
-  // If it's already a thumbnail or not a jpg from our system, just return it
-  if (originalUrl.endsWith("-thumb.jpg") || !originalUrl.endsWith(".jpg")) return originalUrl
-  return originalUrl.replace(/\.jpg$/, "-thumb.jpg")
-}

@@ -1,4 +1,7 @@
-import { MarketingLayout } from "@/components/layout/marketing-layout"
+import fs from 'fs';
+const path = 'src/app/(public)/page.tsx';
+
+const newContent = `import { MarketingLayout } from "@/components/layout/marketing-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -162,3 +165,7 @@ export default function HomePage() {
     </MarketingLayout>
   )
 }
+`;
+
+fs.writeFileSync(path, newContent);
+console.log("Patched page.tsx");

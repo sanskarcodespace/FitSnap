@@ -237,8 +237,6 @@ export async function getClientReport(
   // 7. Progress Photos
   let photosSection = null;
   if (photoCountCurr > 0) {
-  let photosSection = null;
-  if (photoCountCurr > 0) {
     photosSection = { count: photoCountCurr };
   }
 

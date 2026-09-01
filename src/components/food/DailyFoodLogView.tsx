@@ -3,7 +3,7 @@
 import React from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getThumbnailUrl } from "@/lib/upload"
+import { getThumbnailUrl } from "@/lib/utils"
 import { Tooltip } from "@/components/ui/tooltip"
 import { ProgressRing, ProgressBar } from "@/components/ui/progress"
 import type { NutritionSummary } from "@/lib/data/nutrition"

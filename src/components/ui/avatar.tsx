@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { getThumbnailUrl } from "@/lib/upload"
+import { getThumbnailUrl } from "@/lib/utils"
 
 const avatarSizes = {
   sm: "h-8 w-8 text-xs",
