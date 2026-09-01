@@ -43,6 +43,7 @@ model User {
   bodyMeasurements BodyMeasurementEntry[] @relation("ClientBodyMeasurements")
   progressPhotos   ProgressPhotoEntry[]   @relation("ClientProgressPhotos")
   habitCompletions HabitCompletion[]      @relation("ClientHabitCompletions")
+  habitPlans       HabitPlan[]            @relation("ClientHabitPlans")
   checkIns      DailyCheckIn[] @relation("ClientCheckIns")
   sentMessages  Message[]      @relation("SentMessages")
 
@@ -449,8 +450,12 @@ model ProgressPhotoEntry {
 
 model HabitPlan {
   id                      String               @id @default(cuid())
-  coachClientConnectionId String
-  connection              CoachClientConnection @relation("ConnectionHabitPlans", fields: [coachClientConnectionId], references: [id], onDelete: Cascade)
+  coachClientConnectionId String?
+  connection              CoachClientConnection? @relation("ConnectionHabitPlans", fields: [coachClientConnectionId], references: [id], onDelete: Cascade)
+  
+  clientId                String?
+  client                  User?                @relation("ClientHabitPlans", fields: [clientId], references: [id], onDelete: Cascade)
+
   title                   String
   overview                String?
   status                  String               // "ACTIVE" | "ARCHIVED"

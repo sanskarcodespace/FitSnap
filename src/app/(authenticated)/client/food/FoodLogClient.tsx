@@ -13,12 +13,14 @@ type FoodLogClientProps = {
   date: string;
   summary: NutritionSummary;
   hideHeader?: boolean;
+  basePath?: string;
 }
 
 export function FoodLogClient({
   date,
   summary,
-  hideHeader
+  hideHeader,
+  basePath = "/client"
 }: FoodLogClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -38,7 +40,7 @@ export function FoodLogClient({
     const y = prev.getFullYear()
     const m = String(prev.getMonth() + 1).padStart(2, '0')
     const d = String(prev.getDate()).padStart(2, '0')
-    router.push(`/client/food?date=${y}-${m}-${d}`)
+    router.push(`${basePath}/food?date=${y}-${m}-${d}`)
   }
 
   const handleNextDay = () => {
@@ -53,7 +55,7 @@ export function FoodLogClient({
     const todayStr = new Date().toISOString().split('T')[0]
     if (nextStr > todayStr) return
 
-    router.push(`/client/food?date=${nextStr}`)
+    router.push(`${basePath}/food?date=${nextStr}`)
   }
 
   const todayStr = new Date().toISOString().split('T')[0]

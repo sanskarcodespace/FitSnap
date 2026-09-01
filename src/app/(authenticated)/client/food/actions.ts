@@ -13,7 +13,7 @@ async function getClientSession() {
   const token = (await cookies()).get("session_token")?.value
   if (!token) return null
   const session = await verifyToken(token)
-  if (!session || session.role !== "CLIENT") return null
+  if (!session || (session.role !== "CLIENT" && session.role !== "INDIVIDUAL")) return null
   return session
 }
 
@@ -202,7 +202,7 @@ export async function saveMealLog(input: SaveMealInput) {
     }
 
     revalidatePath("/client/food")
-    revalidatePath("/client")
+    revalidatePath("/", "layout")
     
     return { success: true, id: mealId }
   } catch (error) {
@@ -241,7 +241,7 @@ export async function deleteMealLog(mealId: string) {
     })
 
     revalidatePath("/client/food")
-    revalidatePath("/client")
+    revalidatePath("/", "layout")
 
     return { success: true }
   } catch (error) {
@@ -264,7 +264,7 @@ export async function addWater(date: string, amountMl: number) {
     })
 
     revalidatePath("/client/food")
-    revalidatePath("/client")
+    revalidatePath("/", "layout")
 
     return { success: true }
   } catch (error) {
@@ -298,7 +298,7 @@ export async function removeLastWater(date: string) {
     })
 
     revalidatePath("/client/food")
-    revalidatePath("/client")
+    revalidatePath("/", "layout")
 
     return { success: true }
   } catch (error) {

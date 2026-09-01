@@ -40,7 +40,7 @@ export async function toggleHabitCompletion(
     }
   });
 
-  if (!habitItem || habitItem.habitPlan.connection.clientId !== session.userId) {
+  if (!habitItem || (habitItem.habitPlan.connection?.clientId !== session.userId && habitItem.habitPlan.clientId !== session.userId)) {
     return { success: false, error: "Unauthorized access to habit item" };
   }
 
@@ -89,7 +89,9 @@ export async function toggleHabitCompletion(
 
     revalidatePath("/client/habits");
     revalidatePath("/client");
-    revalidatePath(`/coach/clients/${habitItem.habitPlan.connection.id}`);
+    if (habitItem.habitPlan.connection) {
+      revalidatePath(`/coach/clients/${habitItem.habitPlan.connection.id}`);
+    }
     return { success: true };
   } catch (err) {
     console.error("Failed to toggle habit completion:", err);
@@ -140,7 +142,9 @@ export async function saveHabitCompletionNote(
 
     revalidatePath("/client/habits");
     revalidatePath("/client");
-    revalidatePath(`/coach/clients/${completion.habitPlanItem.habitPlan.connection.id}`);
+    if (completion.habitPlanItem.habitPlan.connection) {
+      revalidatePath(`/coach/clients/${completion.habitPlanItem.habitPlan.connection.id}`);
+    }
     return { success: true };
   } catch (err) {
     console.error("Failed to save habit note:", err);

@@ -11,7 +11,7 @@ async function getSession() {
   if (!token) throw new Error("Not authenticated")
   
   const session = await verifyToken(token)
-  if (!session || session.role !== "CLIENT") throw new Error("Not authorized")
+  if (!session || (session.role !== "CLIENT" && session.role !== "INDIVIDUAL")) throw new Error("Not authorized")
   
   return session
 }
@@ -51,7 +51,7 @@ export async function logWeight(data: {
       }
     });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to log weight:", error);
@@ -90,7 +90,7 @@ export async function editWeight(id: string, data: {
       }
     });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to edit weight:", error);
@@ -109,7 +109,7 @@ export async function deleteWeight(id: string) {
 
     await prisma.weightEntry.delete({ where: { id } });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete weight:", error);
@@ -168,7 +168,7 @@ export async function logMeasurement(data: {
       }
     });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to log measurement:", error);
@@ -222,7 +222,7 @@ export async function editMeasurement(id: string, data: {
       }
     });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to edit measurement:", error);
@@ -241,7 +241,7 @@ export async function deleteMeasurement(id: string) {
 
     await prisma.bodyMeasurementEntry.delete({ where: { id } });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete measurement:", error);
@@ -258,7 +258,7 @@ export async function updatePreferredMeasurementUnit(unit: "cm" | "in") {
       data: { preferredMeasurementUnit: unit }
     });
 
-    revalidatePath("/client");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to update measurement unit:", error);

@@ -18,7 +18,7 @@ export async function login(formData: FormData) {
   try {
     user = await prisma.user.findUnique({ 
       where: { email },
-      include: { coachProfile: true }
+      include: { coachProfile: true, clientProfile: true }
     })
     
     if (!user) {
@@ -75,13 +75,27 @@ export async function login(formData: FormData) {
     return { error: "Failed to log in" }
   }
 
-  // Determine routing
+  // Determine routing based on role
   let redirectUrl = "/client"
+
   if (user.role === "COACH") {
     if (user.coachProfile?.onboardingCompleted) {
       redirectUrl = "/coach"
     } else {
       redirectUrl = "/coach/onboarding"
+    }
+  } else if (user.role === "INDIVIDUAL") {
+    if (user.clientProfile?.onboardingCompleted) {
+      redirectUrl = "/individual"
+    } else {
+      redirectUrl = "/individual/onboarding"
+    }
+  } else {
+    // CLIENT role
+    if (user.clientProfile?.onboardingCompleted) {
+      redirectUrl = "/client"
+    } else {
+      redirectUrl = "/client/onboarding"
     }
   }
   

@@ -6,7 +6,7 @@ import { FoodLogClient } from "./FoodLogClient"
 import { FoodHistoryTab } from "./FoodHistoryTab"
 import type { NutritionSummary } from "@/lib/data/nutrition"
 
-export function FoodPageLayout({ date, summary }: { date: string, summary: NutritionSummary }) {
+export function FoodPageLayout({ date, summary, basePath = "/client" }: { date: string, summary: NutritionSummary, basePath?: string }) {
   return (
     <div className="flex flex-col h-full max-w-3xl mx-auto py-8 space-y-6">
       <div>
@@ -24,7 +24,7 @@ export function FoodPageLayout({ date, summary }: { date: string, summary: Nutri
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="today" className="mt-6">
-          <FoodLogClient date={date} summary={summary} hideHeader />
+          <FoodLogClient date={date} summary={summary} hideHeader basePath={basePath} />
         </TabsContent>
         <TabsContent value="history" className="mt-6">
           <FoodHistoryTab />

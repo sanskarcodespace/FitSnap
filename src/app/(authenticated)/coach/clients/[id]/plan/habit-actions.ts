@@ -156,8 +156,8 @@ export async function updateHabitPlan(habitPlanId: string, input: HabitPlanInput
 
   if (
     !habitPlan ||
-    habitPlan.connection.coachId !== session.userId ||
-    habitPlan.connection.status !== "ACTIVE" ||
+    habitPlan.connection?.coachId !== session.userId ||
+    habitPlan.connection?.status !== "ACTIVE" ||
     habitPlan.status !== "ACTIVE"
   ) {
     return { success: false, error: "Forbidden: Cannot edit this plan" };

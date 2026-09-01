@@ -18,9 +18,10 @@ interface DailyCheckIn {
 
 interface DashboardCheckinCardProps {
   todayCheckIn: DailyCheckIn | null;
+  basePath?: string;
 }
 
-export function DashboardCheckinCard({ todayCheckIn }: DashboardCheckinCardProps) {
+export function DashboardCheckinCard({ todayCheckIn, basePath = "/client" }: DashboardCheckinCardProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Derive a quick summary string
@@ -44,7 +45,7 @@ export function DashboardCheckinCard({ todayCheckIn }: DashboardCheckinCardProps
           </h2>
         </div>
         <Link 
-          href="/client/checkins" 
+          href={`${basePath}/checkins`} 
           className="text-sm font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] flex items-center gap-1"
         >
           View History <ArrowRight className="w-4 h-4" />

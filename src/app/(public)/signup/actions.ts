@@ -9,10 +9,18 @@ import { logAuditEvent } from "@/lib/auth/audit"
 export async function signup(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
-  const role = (formData.get("role") as string) || "COACH"
+  const role = (formData.get("role") as string) || "INDIVIDUAL"
 
   if (!email || !password) {
     return { error: "Email and password are required" }
+  }
+
+  if (!["INDIVIDUAL", "COACH", "CLIENT"].includes(role)) {
+    return { error: "Invalid account type" }
+  }
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" }
   }
 
   try {
@@ -68,5 +76,12 @@ export async function signup(formData: FormData) {
     return { error: "Failed to create account" }
   }
 
-  return { redirectTo: "/coach/onboarding" }
+  // Route based on role
+  if (role === "COACH") {
+    return { redirectTo: "/coach/onboarding" }
+  } else if (role === "INDIVIDUAL") {
+    return { redirectTo: "/individual/onboarding" }
+  } else {
+    return { redirectTo: "/client/onboarding" }
+  }
 }

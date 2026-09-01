@@ -28,7 +28,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/pricing' ||
     request.nextUrl.pathname === '/privacy' ||
     request.nextUrl.pathname === '/terms' ||
-    request.nextUrl.pathname === '/contact'
+    request.nextUrl.pathname === '/contact' ||
+    request.nextUrl.pathname.startsWith('/invite')
   ) {
     return NextResponse.next()
   }
@@ -44,14 +45,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Check coach routes
-  if (request.nextUrl.pathname.startsWith('/coach') && session.role !== 'COACH') {
+  // Role-based route protection
+  const { role } = session
+  const path = request.nextUrl.pathname
+
+  // Coach routes — only COACH can access
+  if (path.startsWith('/coach') && role !== 'COACH') {
+    if (role === 'INDIVIDUAL') {
+      return NextResponse.redirect(new URL('/individual', request.url))
+    }
     return NextResponse.redirect(new URL('/client', request.url))
   }
 
-  // Check client routes
-  if (request.nextUrl.pathname.startsWith('/client') && session.role !== 'CLIENT') {
-    return NextResponse.redirect(new URL('/coach', request.url))
+  // Individual routes — only INDIVIDUAL can access
+  if (path.startsWith('/individual') && role !== 'INDIVIDUAL') {
+    if (role === 'COACH') {
+      return NextResponse.redirect(new URL('/coach', request.url))
+    }
+    return NextResponse.redirect(new URL('/client', request.url))
+  }
+
+  // Client routes — only CLIENT can access
+  if (path.startsWith('/client') && role !== 'CLIENT') {
+    if (role === 'COACH') {
+      return NextResponse.redirect(new URL('/coach', request.url))
+    }
+    return NextResponse.redirect(new URL('/individual', request.url))
   }
 
   // Passed all checks
