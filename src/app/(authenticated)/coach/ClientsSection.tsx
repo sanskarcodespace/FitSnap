@@ -250,7 +250,7 @@ export function ClientsSection({
                               )}
                             </div>
                             <div className="flex flex-wrap items-center gap-2 mt-1">
-                              <span className="text-[10px] text-[var(--color-neutral-400)] ml-1">
+                              <span suppressHydrationWarning className="text-[10px] text-[var(--color-neutral-400)] ml-1">
                                 Connected {new Date(conn.invitedAt).toLocaleDateString()}
                               </span>
                             </div>
@@ -296,7 +296,7 @@ export function ClientsSection({
                       <div>
                         <p className="font-semibold">{conn.invitedName || conn.invitedEmail}</p>
                         <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] truncate">{conn.invitedEmail}</p>
-                        <p className="text-xs text-[var(--color-neutral-400)] mt-1">
+                        <p suppressHydrationWarning className="text-xs text-[var(--color-neutral-400)] mt-1">
                           Sent {new Date(conn.invitedAt).toLocaleDateString()}
                         </p>
                       </div>

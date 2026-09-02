@@ -26,10 +26,13 @@ export interface ButtonProps
   asChild?: boolean
 }
 
+import { Slot, Slottable } from "@radix-ui/react-slot"
+
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "md", isLoading, leadingIcon, trailingIcon, children, disabled, ...props }, ref) => {
+  ({ className, variant = "default", size = "md", isLoading, leadingIcon, trailingIcon, children, disabled, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
     return (
-      <button
+      <Comp
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
@@ -47,9 +50,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           </svg>
         )}
         {!isLoading && leadingIcon && <span className="mr-2">{leadingIcon}</span>}
-        {children}
+        <Slottable>{children}</Slottable>
         {!isLoading && trailingIcon && <span className="ml-2">{trailingIcon}</span>}
-      </button>
+      </Comp>
     )
   }
 )

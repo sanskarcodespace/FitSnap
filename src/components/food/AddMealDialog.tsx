@@ -48,6 +48,7 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
   const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [analysisEmpty, setAnalysisEmpty] = useState(false)
   const [isAiAssisted, setIsAiAssisted] = useState(false)
+  const [isCalculatingText, setIsCalculatingText] = useState(false)
   
   // Initialize from initialData if present
   React.useEffect(() => {
@@ -107,6 +108,35 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
 
   const handleRemoveItem = (id: string) => {
     setItems(items.filter(i => i.id !== id))
+  }
+
+  const handleAutoCalculate = async () => {
+    if (!currentItem.name) return
+    setIsCalculatingText(true)
+    try {
+      const { analyzeFoodTextAction } = await import("@/app/(authenticated)/client/food/actions")
+      const res = await analyzeFoodTextAction(currentItem.name, currentItem.portionDescription)
+      
+      if (res.error) {
+        alert(res.error)
+      } else if (res.item) {
+        setCurrentItem({
+          ...currentItem,
+          name: res.item.name || currentItem.name,
+          portionDescription: res.item.portionDescription || currentItem.portionDescription,
+          calories: res.item.calories || 0,
+          proteinGrams: res.item.proteinGrams || 0,
+          carbGrams: res.item.carbGrams || 0,
+          fatGrams: res.item.fatGrams || 0,
+          fiberGrams: res.item.fiberGrams || 0,
+          originType: "ai_detected"
+        })
+      }
+    } catch (e) {
+      alert("Failed to calculate macros.")
+    } finally {
+      setIsCalculatingText(false)
+    }
   }
 
   const handleSave = () => {
@@ -445,13 +475,23 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Portion (Optional)</label>
-                <input 
-                  type="text" 
-                  className="w-full rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                  placeholder="e.g. 1 medium piece, or 150g"
-                  value={currentItem.portionDescription}
-                  onChange={e => setCurrentItem({...currentItem, portionDescription: e.target.value})}
-                />
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    className="flex-1 rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
+                    placeholder="e.g. 1 medium piece, or 150g"
+                    value={currentItem.portionDescription}
+                    onChange={e => setCurrentItem({...currentItem, portionDescription: e.target.value})}
+                  />
+                  <Button 
+                    variant="outline" 
+                    className="shrink-0 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 hover:text-purple-800"
+                    onClick={handleAutoCalculate}
+                    disabled={!currentItem.name || isCalculatingText}
+                  >
+                    {isCalculatingText ? "Calculating..." : "✨ Auto-Calculate"}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

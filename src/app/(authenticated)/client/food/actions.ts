@@ -80,6 +80,33 @@ export async function analyzeFoodPhoto(photoReference: string) {
   }
 }
 
+export async function analyzeFoodTextAction(name: string, portion: string) {
+  const session = await getClientSession()
+  if (!session) return { error: "Unauthorized" }
+
+  // Rate Limiting Check (share limit with image analysis or separate, let's keep separate but similar)
+  const rateLimit = checkRateLimit(`analyze_food_text_${session.userId}`, { windowMs: 60000, max: 10 })
+  if (!rateLimit.success) {
+    return { error: "Too many analysis requests. Please try again later." }
+  }
+
+  if (!name || name.trim().length === 0) {
+    return { error: "Food name is required" }
+  }
+
+  try {
+    const { analyzeFoodText } = await import("@/lib/ai/foodRecognition")
+    const item = await analyzeFoodText(name, portion || "1 serving")
+    if (!item) {
+      return { error: "Could not calculate macros for this food." }
+    }
+    return { success: true, item }
+  } catch (error: any) {
+    console.error("AI Text Analysis error:", error)
+    return { error: "Analysis failed" }
+  }
+}
+
 export type SaveMealInput = {
   id?: string;
   date: string;
