@@ -14,7 +14,8 @@ type FoodItemInput = {
   carbGrams: number;
   fatGrams: number;
   fiberGrams: number;
-  originType?: string; // "manual" | "ai_detected"
+  originType?: string; // "manual" | "ai_detected" | "user_corrected"
+  originalOriginType?: string; // tracks original source if being edited
 }
 
 type MealLogInput = {
@@ -36,7 +37,7 @@ type AddMealDialogProps = {
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"]
 
 export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData }: AddMealDialogProps) {
-  const [entryMode, setEntryMode] = useState<"photo" | "manual">("photo")
+  const [entryMode, setEntryMode] = useState<"select" | "photo" | "manual">("select")
   const [mealType, setMealType] = useState("Breakfast")
   const [items, setItems] = useState<FoodItemInput[]>([])
   
@@ -68,7 +69,7 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
         setPhotoReference(null)
         setPhotoPreview(null)
         setIsAiAssisted(false)
-        setEntryMode("photo")
+        setEntryMode("select")
         setAnalysisError(null)
         setAnalysisEmpty(false)
       }
@@ -92,7 +93,16 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
 
   const handleAddItem = () => {
     if (!currentItem.name) return
-    setItems([...items, { ...currentItem, id: Math.random().toString(), originType: "manual" }])
+    
+    // Determine the correct origin type if it was edited
+    let finalOriginType = currentItem.originType || "manual"
+    if (currentItem.originalOriginType === "ai_detected") {
+      finalOriginType = "user_corrected"
+    }
+
+    setItems([...items, { ...currentItem, id: Math.random().toString(), originType: finalOriginType, originalOriginType: undefined }])
+    
+    // Reset form
     setCurrentItem({
       id: "",
       name: "",
@@ -102,12 +112,23 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
       carbGrams: 0,
       fatGrams: 0,
       fiberGrams: 0,
-      originType: "manual"
+      originType: "manual",
+      originalOriginType: undefined
     })
   }
 
   const handleRemoveItem = (id: string) => {
     setItems(items.filter(i => i.id !== id))
+  }
+
+  const handleEditItem = (item: FoodItemInput) => {
+    // Remove from items list
+    setItems(items.filter(i => i.id !== item.id))
+    // Load into currentItem form, tracking its origin
+    setCurrentItem({
+      ...item,
+      originalOriginType: item.originType // track what it was before this edit
+    })
   }
 
   const handleAutoCalculate = async () => {
@@ -140,9 +161,20 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
   }
 
   const handleSave = () => {
-    if (items.length === 0) return
+    let finalItems = [...items]
+    // If the user filled out the form but forgot to click "Add Item to Meal", do it for them
+    if (currentItem.name && currentItem.calories > 0) {
+      let finalOriginType = currentItem.originType || "manual"
+      if (currentItem.originalOriginType === "ai_detected") {
+        finalOriginType = "user_corrected"
+      }
+      finalItems.push({ ...currentItem, id: Math.random().toString(), originType: finalOriginType, originalOriginType: undefined })
+    }
+    
+    if (finalItems.length === 0) return
+    
     // Clean up temp ids before passing back
-    const cleanedItems = items.map(({ id: _id, ...rest }) => rest)
+    const cleanedItems = finalItems.map(({ id: _id, originalOriginType: _orig, ...rest }) => rest)
     const source = isAiAssisted ? "ai_assisted" : "manual"
     onSave(mealType, cleanedItems, photoReference, source)
   }
@@ -177,7 +209,24 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
           // Implausibly large number of items
           setAnalysisEmpty(true)
           setEntryMode("manual")
+        } else if (aiRes.items.length === 1) {
+          // If exactly 1 item is detected, populate the form fields directly for a magical UX
+          const i = aiRes.items[0]
+          setCurrentItem({
+            id: "",
+            name: i.name || "Unknown Item",
+            portionDescription: i.portionDescription || "",
+            calories: i.calories || 0,
+            proteinGrams: i.proteinGrams || 0,
+            carbGrams: i.carbGrams || 0,
+            fatGrams: i.fatGrams || 0,
+            fiberGrams: i.fiberGrams || 0,
+            originType: "ai_detected"
+          })
+          setIsAiAssisted(true)
+          setEntryMode("manual")
         } else {
+          // Multiple items detected, add them to the list
           const newItems = aiRes.items.map((i: any) => ({
             id: Math.random().toString(),
             name: i.name || "Unknown Item",
@@ -297,7 +346,35 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
             </div>
           )}
 
-          {entryMode === "photo" ? (
+          {entryMode === "select" ? (
+            <div className="flex-1 flex flex-col items-center justify-center space-y-6 px-4">
+              <button 
+                onClick={() => setEntryMode("photo")}
+                className="w-full bg-[var(--color-neutral-50)] hover:bg-purple-50 border-2 border-[var(--color-neutral-200)] hover:border-purple-300 rounded-2xl p-6 transition-all text-left group flex items-start gap-4"
+              >
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">📷</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[var(--color-neutral-800)] group-hover:text-purple-900">Scan Your Meal</h3>
+                  <p className="text-sm text-[var(--color-neutral-500)] mt-1">Upload or take a photo. AI will identify your food and estimate nutrition instantly.</p>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => setEntryMode("manual")}
+                className="w-full bg-[var(--color-neutral-50)] hover:bg-blue-50 border-2 border-[var(--color-neutral-200)] hover:border-blue-300 rounded-2xl p-6 transition-all text-left group flex items-start gap-4"
+              >
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">✍️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[var(--color-neutral-800)] group-hover:text-blue-900">Add Manually</h3>
+                  <p className="text-sm text-[var(--color-neutral-500)] mt-1">Type in your food and portion. We'll help calculate the macros.</p>
+                </div>
+              </button>
+            </div>
+          ) : entryMode === "photo" ? (
             <div className="flex-1 flex flex-col items-center justify-center space-y-4">
               {!photoPreview ? (
                 <>
@@ -446,12 +523,20 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
                         {item.portionDescription ? ` (${item.portionDescription})` : ""}
                       </p>
                     </div>
-                    <button 
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="text-red-500 hover:text-red-700 text-sm font-medium p-2"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => handleEditItem(item)}
+                        className="text-blue-500 hover:text-blue-700 text-xs font-medium p-2"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="text-red-500 hover:text-red-700 text-xs font-medium p-2"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -563,7 +648,7 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
             <Button 
               variant="primary" 
               onClick={handleSave} 
-              disabled={items.length === 0 || isPending || isUploading}
+              disabled={(items.length === 0 && (!currentItem.name || currentItem.calories <= 0)) || isPending || isUploading}
             >
               {isPending ? "Saving..." : "Save Meal"}
             </Button>
