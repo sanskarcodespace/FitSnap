@@ -34,50 +34,60 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // If trying to access protected route without token, redirect to login
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  const isProtectedRoute = 
+    request.nextUrl.pathname.startsWith('/coach') || 
+    request.nextUrl.pathname.startsWith('/client') || 
+    request.nextUrl.pathname.startsWith('/individual') ||
+    request.nextUrl.pathname.startsWith('/api/') && !request.nextUrl.pathname.startsWith('/api/auth');
 
-  const session = await verifyToken(token)
+  if (isProtectedRoute) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
 
-  if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+    const session = await verifyToken(token)
 
-  // Role-based route protection
-  const { role } = session
-  const path = request.nextUrl.pathname
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
 
-  // Coach routes — only COACH can access
-  if (path.startsWith('/coach') && role !== 'COACH') {
-    if (role === 'INDIVIDUAL') {
+    // Role-based route protection
+    const { role } = session
+    const path = request.nextUrl.pathname
+
+    // Coach routes — only COACH can access
+    if (path.startsWith('/coach') && role !== 'COACH') {
+      if (role === 'INDIVIDUAL') {
+        return NextResponse.redirect(new URL('/individual', request.url))
+      }
+      return NextResponse.redirect(new URL('/client', request.url))
+    }
+
+    // Individual routes — only INDIVIDUAL can access
+    if (path.startsWith('/individual') && role !== 'INDIVIDUAL') {
+      if (role === 'COACH') {
+        return NextResponse.redirect(new URL('/coach', request.url))
+      }
+      return NextResponse.redirect(new URL('/client', request.url))
+    }
+
+    // Client routes — only CLIENT can access
+    if (path.startsWith('/client') && role !== 'CLIENT') {
+      if (role === 'COACH') {
+        return NextResponse.redirect(new URL('/coach', request.url))
+      }
       return NextResponse.redirect(new URL('/individual', request.url))
     }
-    return NextResponse.redirect(new URL('/client', request.url))
+
+    // Passed all checks for protected routes
+    const response = NextResponse.next()
+    response.headers.set('x-user-id', session.userId)
+    response.headers.set('x-user-role', session.role)
+    return response
   }
 
-  // Individual routes — only INDIVIDUAL can access
-  if (path.startsWith('/individual') && role !== 'INDIVIDUAL') {
-    if (role === 'COACH') {
-      return NextResponse.redirect(new URL('/coach', request.url))
-    }
-    return NextResponse.redirect(new URL('/client', request.url))
-  }
-
-  // Client routes — only CLIENT can access
-  if (path.startsWith('/client') && role !== 'CLIENT') {
-    if (role === 'COACH') {
-      return NextResponse.redirect(new URL('/coach', request.url))
-    }
-    return NextResponse.redirect(new URL('/individual', request.url))
-  }
-
-  // Passed all checks
-  const response = NextResponse.next()
-  response.headers.set('x-user-id', session.userId)
-  response.headers.set('x-user-role', session.role)
-  return response
+  // Fallback for non-protected, non-public listed routes (e.g. unknown paths -> 404)
+  return NextResponse.next()
 }
 
 export const config = {

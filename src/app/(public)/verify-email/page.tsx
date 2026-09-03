@@ -1,6 +1,15 @@
 import { verifyAndConsumeToken } from "@/lib/auth/tokens"
 import prisma from "@/lib/db/prisma"
 import Link from "next/link"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Verify Email",
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const token = (await searchParams).token

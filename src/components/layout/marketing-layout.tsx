@@ -12,6 +12,19 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-[var(--background)] focus:text-[var(--foreground)] focus:font-medium">
         Skip to main content
       </a>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "FitSnap",
+            "url": "https://fitsnap.com",
+            "logo": "https://fitsnap.com/og-image.jpg",
+            "description": "The AI-assisted platform for modern fitness and wellness coaches."
+          })
+        }}
+      />
       <header className="sticky top-0 z-50 w-full border-b border-[var(--color-neutral-200)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">

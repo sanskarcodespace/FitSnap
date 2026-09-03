@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /how-it-works
+Allow: /for-coaches
+Allow: /pricing
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /signup
+Allow: /login
+Disallow: /coach
+Disallow: /client
+Disallow: /individual
+
+Sitemap: https://fitsnap.com/sitemap.xml

@@ -4,6 +4,15 @@ import { verifyToken } from "@/lib/auth/jwt"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Alert } from "@/components/ui/alert"
 import { InviteSignupForm, InviteLoginForm, LogoutButton } from "./ClientAcceptanceForms"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Invitation",
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function InviteAcceptancePage(props: { params: Promise<{ token: string }> }) {
   const params = await props.params;

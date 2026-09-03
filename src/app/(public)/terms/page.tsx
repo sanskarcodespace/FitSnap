@@ -1,4 +1,35 @@
+import { Metadata } from "next"
 import { MarketingLayout } from "@/components/layout/marketing-layout"
+
+export const metadata: Metadata = {
+  title: "Terms of Service — FitSnap",
+  description: "Read the FitSnap Terms of Service.",
+  alternates: {
+    canonical: "https://fitsnap.com/terms",
+  },
+  openGraph: {
+    title: "Terms of Service — FitSnap",
+    description: "Read the FitSnap Terms of Service.",
+    url: "https://fitsnap.com/terms",
+    siteName: "FitSnap",
+    images: [
+      {
+        url: "https://fitsnap.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "FitSnap Social Share Image",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Terms of Service — FitSnap",
+    description: "Read the FitSnap Terms of Service.",
+    images: ["https://fitsnap.com/og-image.jpg"],
+  },
+}
 
 export default function TermsPage() {
   return (

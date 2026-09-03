@@ -1,5 +1,36 @@
+import { Metadata } from "next"
 import { MarketingLayout } from "@/components/layout/marketing-layout"
 import { CheckCircle2 } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "For Coaches — FitSnap",
+  description: "Scale your fitness coaching business without scaling your busywork. See how FitSnap's tools help you manage clients more efficiently.",
+  alternates: {
+    canonical: "https://fitsnap.com/for-coaches",
+  },
+  openGraph: {
+    title: "For Coaches — FitSnap",
+    description: "Scale your fitness coaching business without scaling your busywork. See how FitSnap's tools help you manage clients more efficiently.",
+    url: "https://fitsnap.com/for-coaches",
+    siteName: "FitSnap",
+    images: [
+      {
+        url: "https://fitsnap.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "FitSnap Social Share Image",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "For Coaches — FitSnap",
+    description: "Scale your fitness coaching business without scaling your busywork. See how FitSnap's tools help you manage clients more efficiently.",
+    images: ["https://fitsnap.com/og-image.jpg"],
+  },
+}
 
 export default function ForCoachesPage() {
   return (

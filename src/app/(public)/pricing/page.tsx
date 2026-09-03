@@ -1,4 +1,35 @@
+import { Metadata } from "next"
 import { MarketingLayout } from "@/components/layout/marketing-layout"
+
+export const metadata: Metadata = {
+  title: "Pricing — FitSnap",
+  description: "Simple, transparent pricing for fitness coaches. Plans that grow with your business.",
+  alternates: {
+    canonical: "https://fitsnap.com/pricing",
+  },
+  openGraph: {
+    title: "Pricing — FitSnap",
+    description: "Simple, transparent pricing for fitness coaches. Plans that grow with your business.",
+    url: "https://fitsnap.com/pricing",
+    siteName: "FitSnap",
+    images: [
+      {
+        url: "https://fitsnap.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "FitSnap Social Share Image",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pricing — FitSnap",
+    description: "Simple, transparent pricing for fitness coaches. Plans that grow with your business.",
+    images: ["https://fitsnap.com/og-image.jpg"],
+  },
+}
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -11,7 +42,6 @@ export default function PricingPage() {
         <div className="text-center space-y-4">
           <h1 className="text-[var(--text-display-size)] font-bold">Simple, transparent pricing</h1>
           <p className="text-[var(--text-body-lg-size)] text-[var(--color-neutral-600)]">Plans that grow with your coaching business.</p>
-          <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-400)] italic mt-2">* Prices and tiers are illustrative and subject to change.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 items-start">
@@ -24,7 +54,7 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-3">
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Up to 15 active clients</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Up to 5 active clients</li>
                 <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> AI food-photo logging</li>
                 <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Basic templates</li>
               </ul>
@@ -48,7 +78,7 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-3">
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Up to 50 active clients</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Up to 25 active clients</li>
                 <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Everything in Solo</li>
                 <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> Advanced plan builders</li>
                 <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-[var(--color-primary-500)]" /> WhatsApp report exports</li>
@@ -84,6 +114,37 @@ export default function PricingPage() {
           </Card>
         </div>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "Product",
+              "name": "FitSnap Solo Coach",
+              "description": "Perfect for trainers just starting out. Up to 5 active clients.",
+              "offers": {
+                "@type": "Offer",
+                "price": "29.00",
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"
+              }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "Product",
+              "name": "FitSnap Growing Practice",
+              "description": "For full-time coaches scaling up. Up to 25 active clients.",
+              "offers": {
+                "@type": "Offer",
+                "price": "79.00",
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"
+              }
+            }
+          ])
+        }}
+      />
     </MarketingLayout>
   )
 }
