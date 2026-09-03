@@ -19,6 +19,18 @@ export type DetectedFoodItem = {
 };
 
 export async function analyzeFoodText(name: string, portion: string): Promise<DetectedFoodItem | null> {
+  if (process.env.MOCK_AI === "true") {
+    return {
+      name: "Mock " + name,
+      portionDescription: portion || "1 serving",
+      calories: 100,
+      proteinGrams: 10,
+      carbGrams: 10,
+      fatGrams: 5,
+      fiberGrams: 2
+    };
+  }
+
   try {
     const prompt = `
 You are a highly capable AI nutrition assistant. 
@@ -88,6 +100,20 @@ Example output:
 }
 
 export async function analyzeFoodImage(imagePath: string): Promise<DetectedFoodItem[]> {
+  if (process.env.MOCK_AI === "true") {
+    return [
+      {
+        name: "Mock AI Food",
+        portionDescription: "1 portion",
+        calories: 250,
+        proteinGrams: 20,
+        carbGrams: 30,
+        fatGrams: 5,
+        fiberGrams: 3
+      }
+    ];
+  }
+
   try {
     // Ensure the file exists and read it
     const fileBuffer = await fs.readFile(imagePath);

@@ -164,6 +164,17 @@ CRITICAL RULES AND SAFETY GUARDRAILS:
   const currentMsgPart = historyParts.pop()!
 
   try {
+    if (process.env.MOCK_AI === "true") {
+      const assistantMessage = await prisma.aIMessage.create({
+        data: {
+          aiConversationId: conversation.id,
+          sender: "ASSISTANT",
+          body: "Mock AI Assistant Response"
+        }
+      });
+      return { success: true, clientMessage, assistantMessage };
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
 

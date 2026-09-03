@@ -5,6 +5,7 @@ import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth/jwt"
 import crypto from "crypto"
 import { revalidatePath } from "next/cache"
+import { canInviteMoreClients } from "@/lib/billing"
 
 async function getSession() {
   const token = (await cookies()).get("session_token")?.value
@@ -65,6 +66,11 @@ export async function inviteClient(formData: FormData) {
       })
       inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}`
     } else {
+      const canInvite = await canInviteMoreClients(session.userId);
+      if (!canInvite) {
+        return { success: false, error: "Client limit reached for your current plan." }
+      }
+
       await prisma.coachClientConnection.create({
         data: {
           coachId: session.userId,
