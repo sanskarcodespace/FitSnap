@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname === '/login' ||
     request.nextUrl.pathname === '/signup' ||
-    request.nextUrl.pathname.startsWith('/style-guide') ||
+    (request.nextUrl.pathname.startsWith('/style-guide') && (process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_ENABLE_STYLE_GUIDE === 'true')) ||
     request.nextUrl.pathname === '/how-it-works' ||
     request.nextUrl.pathname === '/for-coaches' ||
     request.nextUrl.pathname === '/pricing' ||
@@ -39,6 +39,14 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/client') || 
     request.nextUrl.pathname.startsWith('/individual') ||
     request.nextUrl.pathname.startsWith('/api/') && !request.nextUrl.pathname.startsWith('/api/auth');
+
+  if (process.env.NODE_ENV === 'production' && request.nextUrl.pathname.startsWith('/api/dev')) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
+  }
+
+  if (process.env.NODE_ENV === 'production' && request.nextUrl.pathname.startsWith('/style-guide') && process.env.NEXT_PUBLIC_ENABLE_STYLE_GUIDE !== 'true') {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
 
   if (isProtectedRoute) {
     if (!token) {

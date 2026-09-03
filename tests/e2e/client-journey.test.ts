@@ -27,7 +27,7 @@ test.describe('Client Critical Journey', () => {
     await expect(page).toHaveURL('/client');
     
     // 2. View Daily Check-in or Log
-    await page.click('text=Log Meal');
+    await page.click('text=Log Food or Water');
     
     // Verify it navigates to food logging
     await expect(page).toHaveURL(/\/client\/food/);

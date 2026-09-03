@@ -138,24 +138,10 @@ export async function saveMealLog(input: SaveMealInput) {
 
     // If the photoReference points to the temp directory, we must move it to the permanent directory
     if (finalPhotoReference && finalPhotoReference.includes("/api/private-images/temp/")) {
-      const filename = finalPhotoReference.split("/").pop()
-      if (filename && filename.match(/^[a-zA-Z0-9_.-]+$/)) {
-        const tempPath = path.join(process.cwd(), "private", "uploads", "temp", session.userId, filename)
-        const finalDir = path.join(process.cwd(), "private", "uploads", "food", session.userId)
-        const finalPath = path.join(finalDir, filename)
-        
-        // Ensure final directory exists
-        await fs.mkdir(finalDir, { recursive: true })
-        
-        // Move the file
-        try {
-          await fs.rename(tempPath, finalPath)
-          finalPhotoReference = `/api/private-images/food/${session.userId}/${filename}`
-        } catch (moveErr) {
-          console.error("Failed to move temp photo to permanent storage:", moveErr)
-          // Fallback: clear it if we couldn't move it
-          finalPhotoReference = null
-        }
+      const { moveImage } = await import("@/lib/upload")
+      const newRef = await moveImage(finalPhotoReference, "food", session.userId)
+      if (newRef) {
+        finalPhotoReference = newRef
       } else {
         finalPhotoReference = null
       }
@@ -170,13 +156,8 @@ export async function saveMealLog(input: SaveMealInput) {
       
       // If photo changed/removed, clean up the old one
       if (existing.photoReference && existing.photoReference !== finalPhotoReference) {
-        const oldFilename = existing.photoReference.split("/").pop()
-        if (oldFilename && oldFilename.match(/^[a-zA-Z0-9_.-]+$/)) {
-          const oldPath = path.join(process.cwd(), "private", "uploads", "food", session.userId, oldFilename)
-          try {
-             await fs.unlink(oldPath)
-          } catch (e) {} // ignore if already deleted
-        }
+        const { deleteImage } = await import("@/lib/upload")
+        await deleteImage(existing.photoReference, session.userId)
       }
 
       await prisma.mealLog.update({
@@ -254,13 +235,8 @@ export async function deleteMealLog(mealId: string) {
 
     // Clean up associated photo file
     if (meal.photoReference) {
-      const filename = meal.photoReference.split("/").pop()
-      if (filename && filename.match(/^[a-zA-Z0-9_.-]+$/)) {
-        const filePath = path.join(process.cwd(), "private", "uploads", "food", session.userId, filename)
-        try {
-          await fs.unlink(filePath)
-        } catch (e) {} // ignore unlink errors if file doesn't exist
-      }
+      const { deleteImage } = await import("@/lib/upload")
+      await deleteImage(meal.photoReference, session.userId)
     }
 
     await prisma.mealLog.delete({
