@@ -16,7 +16,9 @@ let s3Client: S3Client | null = null;
 function getS3Client() {
   if (!s3Client) {
     s3Client = new S3Client({
+      forcePathStyle: true, // required for Neon Object Storage
       region: process.env.AWS_REGION || "us-east-1",
+      endpoint: process.env.AWS_ENDPOINT_URL_S3 || undefined, // auto-picks up Neon endpoint if available
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
@@ -99,7 +101,11 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
         ACL: isPrivate ? "private" : "public-read"
       }));
 
-      return isPrivate ? `/api/private-images/${folder}/${filename}` : `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/public/${folder}/${filename}`
+      const publicUrl = process.env.AWS_ENDPOINT_URL_S3 
+        ? `${process.env.AWS_ENDPOINT_URL_S3}/${bucket}/${s3Prefix}/${filename}`
+        : `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Prefix}/${filename}`;
+
+      return isPrivate ? `/api/private-images/${folder}/${filename}` : publicUrl;
     } else {
       // Local storage fallback
       // Ensure directory exists
