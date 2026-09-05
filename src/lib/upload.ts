@@ -127,7 +127,7 @@ export async function processAndStoreImage(file: File, options: UploadOptions = 
   }
 }
 
-import { CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3"
+import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3"
 
 export async function moveImage(oldPathRef: string, newFolder: string, clientId: string): Promise<string | null> {
   // e.g., oldPathRef = "/api/private-images/temp/client_id/123.jpg"
@@ -208,6 +208,44 @@ export async function deleteImage(pathRef: string, clientId: string): Promise<vo
     try {
       await fs.unlink(filePath)
     } catch (e) {}
+  }
+}
+
+export async function getImageBuffer(pathRef: string, clientId: string): Promise<Buffer> {
+  const filename = pathRef.split("/").pop()
+  if (!filename || !filename.match(/^[a-zA-Z0-9_.-]+$/)) {
+    throw new Error("Invalid filename")
+  }
+
+  const folderMatch = pathRef.match(/\/api\/private-images\/([^/]+)\//)
+  const folder = folderMatch ? folderMatch[1] : "temp"
+
+  const storageDriver = process.env.STORAGE_DRIVER || "local"
+
+  if (storageDriver === "s3") {
+    const s3 = getS3Client()
+    const bucket = process.env.AWS_S3_BUCKET_NAME || "fitsnap-prod-assets"
+    
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: `private/${folder}/${clientId}/${filename}`,
+    })
+    
+    const response = await s3.send(command)
+    if (!response.Body) {
+      throw new Error("Empty body returned from S3")
+    }
+    
+    // Convert stream/blob to buffer
+    const stream = response.Body as any
+    const chunks = []
+    for await (const chunk of stream) {
+      chunks.push(chunk)
+    }
+    return Buffer.concat(chunks)
+  } else {
+    const filePath = path.join(process.cwd(), "private", "uploads", folder, clientId, filename)
+    return await fs.readFile(filePath)
   }
 }
 

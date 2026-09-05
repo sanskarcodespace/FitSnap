@@ -127,7 +127,7 @@ Example output:
  * This is the FIRST step — it detects foods and estimates portions but does NOT
  * calculate full nutrition. That happens in calculateNutritionForItems().
  */
-export async function analyzeFoodImage(imagePath: string): Promise<DetectedFoodRaw[]> {
+export async function analyzeFoodImage(image: Buffer | string, filename?: string): Promise<DetectedFoodRaw[]> {
   if (process.env.MOCK_AI === "true") {
     return [
       { name: "Rice", quantity: 250, unit: "g", isEstimated: true },
@@ -137,9 +137,18 @@ export async function analyzeFoodImage(imagePath: string): Promise<DetectedFoodR
   }
 
   try {
-    // Ensure the file exists and read it
-    const fileBuffer = await fs.readFile(imagePath);
-    const mimeType = getMimeType(imagePath) || "image/jpeg";
+    let fileBuffer: Buffer;
+    let mimeType: string = "image/jpeg";
+    
+    if (Buffer.isBuffer(image)) {
+      fileBuffer = image;
+      if (filename) {
+        mimeType = getMimeType(filename);
+      }
+    } else {
+      fileBuffer = await fs.readFile(image);
+      mimeType = getMimeType(image);
+    }
 
     const prompt = `
 You are a highly capable AI food recognition assistant. I am providing you with a photo of a meal.

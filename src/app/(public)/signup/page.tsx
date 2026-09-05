@@ -22,8 +22,15 @@ export default function SignupPage() {
 
   const handleRoleSelect = (role: Role) => {
     setSelectedRole(role)
-    setStep(2)
     setError("")
+  }
+
+  const handleContinue = () => {
+    if (!selectedRole) {
+      setError("Please select an account type.")
+      return
+    }
+    setStep(2)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -79,7 +86,11 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => handleRoleSelect("INDIVIDUAL")}
-                    className="group relative w-full text-left p-6 rounded-2xl border-2 border-[var(--color-neutral-200)] bg-white/60 backdrop-blur-sm hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)]/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2"
+                    className={`group relative w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2 ${
+                      selectedRole === "INDIVIDUAL" 
+                        ? "border-[var(--color-primary-500)] bg-[var(--color-primary-50)] shadow-md" 
+                        : "border-[var(--color-neutral-200)] bg-white/60 backdrop-blur-sm hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)]/50 hover:shadow-lg hover:-translate-y-0.5"
+                    }`}
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-primary-100)] to-[var(--color-primary-200)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -91,8 +102,14 @@ export default function SignupPage() {
                           Track your own food, nutrition, fitness and progress.
                         </p>
                       </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-[var(--color-neutral-300)] group-hover:border-[var(--color-primary-500)] transition-colors shrink-0 mt-1 flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary-500)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className={`w-6 h-6 rounded-full border-2 transition-colors shrink-0 mt-1 flex items-center justify-center ${
+                        selectedRole === "INDIVIDUAL"
+                          ? "border-[var(--color-primary-500)]"
+                          : "border-[var(--color-neutral-300)] group-hover:border-[var(--color-primary-500)]"
+                      }`}>
+                        <div className={`w-2.5 h-2.5 rounded-full bg-[var(--color-primary-500)] transition-opacity ${
+                          selectedRole === "INDIVIDUAL" ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        }`} />
                       </div>
                     </div>
                   </button>
@@ -101,7 +118,11 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => handleRoleSelect("COACH")}
-                    className="group relative w-full text-left p-6 rounded-2xl border-2 border-[var(--color-neutral-200)] bg-white/60 backdrop-blur-sm hover:border-[var(--color-secondary-400)] hover:bg-[var(--color-secondary-50)]/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary-500)] focus:ring-offset-2"
+                    className={`group relative w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary-500)] focus:ring-offset-2 ${
+                      selectedRole === "COACH" 
+                        ? "border-[var(--color-secondary-500)] bg-[var(--color-secondary-50)] shadow-md" 
+                        : "border-[var(--color-neutral-200)] bg-white/60 backdrop-blur-sm hover:border-[var(--color-secondary-400)] hover:bg-[var(--color-secondary-50)]/50 hover:shadow-lg hover:-translate-y-0.5"
+                    }`}
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-secondary-100)] to-[var(--color-secondary-200)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -113,15 +134,30 @@ export default function SignupPage() {
                           Manage clients, send invitations and monitor their progress.
                         </p>
                       </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-[var(--color-neutral-300)] group-hover:border-[var(--color-secondary-500)] transition-colors shrink-0 mt-1 flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-secondary-500)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className={`w-6 h-6 rounded-full border-2 transition-colors shrink-0 mt-1 flex items-center justify-center ${
+                        selectedRole === "COACH"
+                          ? "border-[var(--color-secondary-500)]"
+                          : "border-[var(--color-neutral-300)] group-hover:border-[var(--color-secondary-500)]"
+                      }`}>
+                        <div className={`w-2.5 h-2.5 rounded-full bg-[var(--color-secondary-500)] transition-opacity ${
+                          selectedRole === "COACH" ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        }`} />
                       </div>
                     </div>
                   </button>
                 </div>
 
+                <Button 
+                  onClick={handleContinue}
+                  className="w-full h-12 text-base rounded-xl shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 mt-2" 
+                  size="lg"
+                  disabled={!selectedRole}
+                >
+                  Continue
+                </Button>
+
                 {error && (
-                  <Alert variant="error" title="Error" className="bg-[var(--color-error-bg)]/50 backdrop-blur-sm">
+                  <Alert variant="error" title="Error" className="bg-[var(--color-error-bg)]/50 backdrop-blur-sm mt-4">
                     <AlertCircle className="w-4 h-4" />
                     {error}
                   </Alert>

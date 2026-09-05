@@ -69,10 +69,10 @@ export async function analyzeFoodPhoto(photoReference: string) {
     return { error: "Invalid filename" }
   }
 
-  const filePath = path.join(process.cwd(), "private", "uploads", "temp", session.userId, filename)
-  
   try {
-    const detectedItems = await analyzeFoodImage(filePath)
+    const { getImageBuffer } = await import("@/lib/upload")
+    const imageBuffer = await getImageBuffer(photoReference, session.userId)
+    const detectedItems = await analyzeFoodImage(imageBuffer, filename)
     return { success: true, items: detectedItems }
   } catch (error: any) {
     console.error("AI Analysis error:", error)
