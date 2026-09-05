@@ -12,79 +12,84 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-[var(--background)] focus:text-[var(--foreground)] focus:font-medium">
         Skip to main content
       </a>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "FitSnap",
-            "url": "https://fitsnap.com",
-            "logo": "https://fitsnap.com/og-image.jpg",
-            "description": "The AI-assisted platform for modern fitness and wellness coaches."
-          })
-        }}
-      />
-      <header className="sticky top-0 z-50 w-full border-b border-[var(--color-neutral-200)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="font-bold text-xl text-[var(--color-primary-700)]">FitSnap</span>
-            </Link>
-            <nav className="hidden md:flex gap-6">
-              <Link href="/how-it-works" className="text-[var(--text-body-sm-size)] font-medium text-[var(--color-neutral-600)] hover:text-[var(--foreground)] transition-colors">
-                How It Works
+      
+      {/* Floating Glass Navigation */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center mt-6 px-4">
+        <header className="w-full max-w-5xl rounded-full border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
+          <div className="flex h-16 items-center justify-between px-6 md:px-8">
+            <div className="flex items-center gap-8">
+              <Link href="/" className="flex items-center space-x-2 group">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[var(--color-primary-600)] to-[var(--color-accent)] flex items-center justify-center shadow-lg group-hover:shadow-[var(--shadow-glow)] transition-all duration-300">
+                  <span className="font-bold text-white text-lg">F</span>
+                </div>
+                <span className="font-bold text-xl text-white tracking-tight">FitSnap</span>
               </Link>
-              <Link href="/for-coaches" className="text-[var(--text-body-sm-size)] font-medium text-[var(--color-neutral-600)] hover:text-[var(--foreground)] transition-colors">
-                For Coaches
+              <nav className="hidden md:flex gap-8">
+                <Link href="/how-it-works" className="text-sm font-medium text-white/60 hover:text-white transition-colors">
+                  How It Works
+                </Link>
+                <Link href="/for-coaches" className="text-sm font-medium text-white/60 hover:text-white transition-colors">
+                  For Coaches
+                </Link>
+                <Link href="/pricing" className="text-sm font-medium text-white/60 hover:text-white transition-colors">
+                  Pricing
+                </Link>
+              </nav>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link href="/login" className="hidden md:inline-block text-sm font-medium text-white/60 hover:text-white transition-colors">
+                Sign In
               </Link>
-              <Link href="/pricing" className="text-[var(--text-body-sm-size)] font-medium text-[var(--color-neutral-600)] hover:text-[var(--foreground)] transition-colors">
-                Pricing
+              <Link href="/signup">
+                <Button size="sm" className="h-10 px-6 rounded-full bg-white text-black hover:bg-white/90 font-medium shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300">
+                  Get Started
+                </Button>
               </Link>
-            </nav>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:inline-block text-[var(--text-body-sm-size)] font-medium text-[var(--color-neutral-600)] hover:text-[var(--foreground)] transition-colors">
-              Log In
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" className="h-9">Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
-      <main id="main-content" className="flex-1" tabIndex={-1}>
+      <main id="main-content" className="flex-1 pt-24" tabIndex={-1}>
         {children}
       </main>
 
-      <footer className="border-t border-[var(--color-neutral-200)] bg-[var(--color-secondary-50)] py-8 md:py-12 mt-auto">
-        <div className="container mx-auto px-4 grid md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <span className="font-bold text-xl text-[var(--color-primary-700)]">FitSnap</span>
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">
-              The AI-assisted platform for modern fitness and wellness coaches.
+      <footer className="border-t border-white/10 bg-black/50 py-12 md:py-16 mt-auto backdrop-blur-md">
+        <div className="container mx-auto px-6 max-w-5xl grid md:grid-cols-4 gap-12">
+          <div className="space-y-6 md:col-span-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[var(--color-primary-600)] to-[var(--color-accent)] flex items-center justify-center">
+                <span className="font-bold text-white text-lg">F</span>
+              </div>
+              <span className="font-bold text-xl text-white tracking-tight">FitSnap</span>
+            </div>
+            <p className="text-sm text-white/50 max-w-xs leading-relaxed">
+              The AI-assisted platform for modern fitness and wellness coaches. Stop guessing, start coaching.
             </p>
           </div>
           <div>
-            <h3 className="font-semibold mb-4 text-[var(--text-body-sm-size)]">Product</h3>
-            <ul className="space-y-2 text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)]">
-              <li><Link href="/how-it-works" className="hover:text-[var(--foreground)]">How It Works</Link></li>
-              <li><Link href="/for-coaches" className="hover:text-[var(--foreground)]">For Coaches</Link></li>
-              <li><Link href="/pricing" className="hover:text-[var(--foreground)]">Pricing</Link></li>
+            <h3 className="font-semibold mb-6 text-sm text-white">Product</h3>
+            <ul className="space-y-4 text-sm text-white/50">
+              <li><Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+              <li><Link href="/for-coaches" className="hover:text-white transition-colors">For Coaches</Link></li>
+              <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-4 text-[var(--text-body-sm-size)]">Company</h3>
-            <ul className="space-y-2 text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)]">
-              <li><Link href="/contact" className="hover:text-[var(--foreground)]">Contact Us</Link></li>
-              <li><Link href="/privacy" className="hover:text-[var(--foreground)]">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-[var(--foreground)]">Terms of Service</Link></li>
+            <h3 className="font-semibold mb-6 text-sm text-white">Company</h3>
+            <ul className="space-y-4 text-sm text-white/50">
+              <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
         </div>
-        <div className="container mx-auto px-4 mt-8 pt-8 border-t border-[var(--color-neutral-200)] text-center text-[var(--text-caption-size)] text-[var(--color-neutral-500)]">
-          &copy; {new Date().getFullYear()} FitSnap. All rights reserved.
+        <div className="container mx-auto px-6 max-w-5xl mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between text-xs text-white/40">
+          <p>&copy; {new Date().getFullYear()} FitSnap. All rights reserved.</p>
+          <div className="flex gap-4 mt-4 md:mt-0">
+            <a href="#" className="hover:text-white transition-colors">Twitter</a>
+            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+          </div>
         </div>
       </footer>
     </div>
