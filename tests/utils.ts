@@ -72,5 +72,5 @@ export async function createActiveConnection(coachId: string, clientId: string) 
 }
 
 export async function createMockSessionToken(userId: string, role: 'COACH' | 'CLIENT', email: string) {
-  return await signToken({ userId, role, email });
+  return await signToken({ userId, role });
 }
