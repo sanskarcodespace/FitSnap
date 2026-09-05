@@ -88,9 +88,9 @@
   --radius-xl: 1.25rem;
 
   /* ── Elevation (soft, diffuse, two-layer) ── */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.06);
-  --shadow-md: 0 2px 4px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06);
-  --shadow-lg: 0 4px 6px rgb(0 0 0 / 0.03), 0 12px 24px rgb(0 0 0 / 0.08);
+  --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.04), 0 1px 2px rgb(0 0 0 / 0.02);
+  --shadow-md: 0 4px 16px rgb(0 0 0 / 0.04), 0 2px 4px rgb(0 0 0 / 0.02);
+  --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.04), 0 4px 8px rgb(0 0 0 / 0.02);
   --shadow-glow: 0 0 25px rgba(12, 110, 150, 0.3);
 
   /* ── Breakpoints ── */
@@ -102,8 +102,9 @@
 
 /* ── Light-mode product defaults ── */
 :root {
-  --background: #ffffff;
+  --background: var(--color-neutral-50);
   --foreground: var(--color-neutral-900);
+  --card-background: #ffffff;
 }
 
 body {

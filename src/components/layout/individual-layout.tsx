@@ -59,7 +59,7 @@ export function IndividualLayout({ user, children, onLogout }: IndividualLayoutP
       </a>
 
       {/* Top Header */}
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-[var(--color-neutral-200)] bg-[var(--background)] px-4 shadow-sm">
+      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-black/5 bg-white/70 backdrop-blur-xl px-4 shadow-sm">
         <div className="flex items-center gap-6">
           <Link href="/individual" className="flex items-center space-x-2">
             <span className="font-bold text-xl text-[var(--color-primary-700)]">FitSnap</span>
@@ -165,7 +165,7 @@ export function IndividualLayout({ user, children, onLogout }: IndividualLayoutP
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--color-neutral-200)] bg-[var(--background)] safe-area-pb">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-black/5 bg-white/70 backdrop-blur-xl safe-area-pb">
         <div className="flex items-center justify-around h-16">
           {MOBILE_NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/individual" && pathname.startsWith(item.href))

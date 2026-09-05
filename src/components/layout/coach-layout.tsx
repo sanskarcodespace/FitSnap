@@ -52,8 +52,8 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
       </a>
       
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 bg-[var(--background)] border-r border-[var(--color-neutral-200)] shadow-sm">
-        <div className="flex h-16 items-center px-6 border-b border-[var(--color-neutral-200)]">
+      <aside className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 bg-white border-r border-black/5 shadow-sm">
+        <div className="flex h-16 items-center px-6 border-b border-black/5">
           <Link href="/coach" className="flex items-center space-x-2">
             <span className="font-bold text-xl text-[var(--color-primary-700)]">FitSnap Coach</span>
           </Link>

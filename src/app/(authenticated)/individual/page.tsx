@@ -75,7 +75,7 @@ export default async function IndividualHomePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Progress Card */}
-        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
+        <section className="bg-[var(--card-background)] rounded-[1.25rem] p-6 shadow-[var(--shadow-md)] border border-black/5 flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5">
           <div className="flex justify-between items-start mb-4">
             <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[var(--color-primary-600)]" />
@@ -108,7 +108,7 @@ export default async function IndividualHomePage() {
         </section>
 
         {/* Share My Progress Card */}
-        <section className="bg-gradient-to-br from-[var(--color-primary-50)] to-[var(--color-secondary-50)] rounded-xl p-5 shadow-sm border border-[var(--color-primary-200)] flex flex-col justify-center items-center text-center">
+        <section className="bg-gradient-to-br from-[var(--color-primary-50)] via-white to-[var(--color-primary-50)/50] rounded-[1.25rem] p-6 shadow-[var(--shadow-md)] border border-black/5 flex flex-col justify-center items-center text-center transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5">
           <div className="w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center mb-3 shadow-sm">
             <Share2 className="w-6 h-6 text-[var(--color-primary-600)]" />
           </div>
@@ -122,7 +122,7 @@ export default async function IndividualHomePage() {
         </section>
 
         {/* Food & Nutrition Card */}
-        <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
+        <section className="bg-[var(--card-background)] rounded-[1.25rem] p-6 shadow-[var(--shadow-md)] border border-black/5 flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5">
           <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4 flex items-center gap-2">
             <Utensils className="w-5 h-5 text-[var(--color-secondary-600)]" />
             Food & Nutrition
