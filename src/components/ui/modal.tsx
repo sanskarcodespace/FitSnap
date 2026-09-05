@@ -82,9 +82,9 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
         ref={modalRef}
         tabIndex={-1}
         className={cn(
-          "z-50 w-full max-w-lg scale-100 gap-4 border border-[var(--color-neutral-200)] bg-[var(--background)] p-6 shadow-[var(--shadow-lg)] sm:rounded-[var(--radius-lg)]",
+          "z-50 w-full max-w-lg gap-4 border border-[var(--color-neutral-200)] bg-[var(--background)] p-6 shadow-[var(--shadow-lg)] sm:rounded-[var(--radius-lg)]",
           "md:w-full sm:max-w-[425px]",
-          "motion-safe:transition-all motion-reduce:transition-none"
+          "motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-200 motion-reduce:transition-none"
         )}
         role="dialog"
         aria-modal="true"

@@ -12,8 +12,8 @@ export interface ToastProps {
 
 const toastVariants = {
   default: "bg-[var(--background)] border border-[var(--color-neutral-200)] text-[var(--foreground)]",
-  success: "bg-[var(--color-success-bg)] border border-[#bbf7d0] text-[var(--color-success-text)]",
-  error: "bg-[var(--color-error-bg)] border border-[#fecaca] text-[var(--color-error-text)]",
+  success: "bg-[var(--color-success-bg)] border border-[var(--color-accent)]/20 text-[var(--color-success-text)]",
+  error: "bg-[var(--color-error-bg)] border border-[var(--color-error-text)]/20 text-[var(--color-error-text)]",
 }
 
 export function Toast({ title, description, variant = "default", onClose, isVisible = true }: ToastProps) {
@@ -22,7 +22,7 @@ export function Toast({ title, description, variant = "default", onClose, isVisi
   return (
     <div
       className={cn(
-        "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-[var(--radius-md)] p-4 pr-8 shadow-[var(--shadow-md)] motion-safe:transition-all motion-reduce:transition-none",
+        "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-[var(--radius-md)] p-4 pr-8 shadow-[var(--shadow-md)] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-300 motion-reduce:transition-none",
         toastVariants[variant]
       )}
       role="status" aria-live="polite" aria-atomic="true"

@@ -2,12 +2,12 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = {
-  default: "bg-[var(--color-primary-700)] text-white hover:bg-[var(--color-primary-800)] active:bg-[var(--color-primary-900)]",
-  primary: "bg-[var(--color-primary-700)] text-white hover:bg-[var(--color-primary-800)] active:bg-[var(--color-primary-900)]",
-  secondary: "bg-[var(--color-secondary-200)] text-[var(--color-secondary-900)] hover:bg-[var(--color-secondary-300)] active:bg-[var(--color-secondary-400)]",
-  ghost: "hover:bg-[var(--color-secondary-100)] text-[var(--color-secondary-700)] active:bg-[var(--color-secondary-200)]",
-  destructive: "bg-[var(--color-error-bg)] text-[var(--color-error-text)] hover:bg-[#fecaca] active:bg-[#f87171]",
-  outline: "border border-[var(--color-neutral-300)] bg-transparent hover:bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]",
+  default: "bg-[var(--color-primary-600)] text-white hover:bg-[var(--color-primary-700)] active:bg-[var(--color-primary-800)]",
+  primary: "bg-[var(--color-primary-600)] text-white hover:bg-[var(--color-primary-700)] active:bg-[var(--color-primary-800)]",
+  secondary: "bg-[var(--color-neutral-100)] text-[var(--color-neutral-800)] hover:bg-[var(--color-neutral-200)] active:bg-[var(--color-neutral-300)]",
+  ghost: "hover:bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] active:bg-[var(--color-neutral-200)]",
+  destructive: "bg-[var(--color-error-bg)] text-[var(--color-error-text)] hover:bg-red-100 active:bg-red-200",
+  outline: "border border-[var(--color-neutral-300)] bg-[var(--background)] hover:bg-[var(--color-neutral-50)] text-[var(--color-neutral-700)]",
 }
 
 const buttonSizes = {
@@ -36,7 +36,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "inline-flex items-center justify-center rounded-[var(--radius-md)] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-[var(--background)]",
+          "inline-flex items-center justify-center rounded-[var(--radius-md)] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-[var(--background)]",
           buttonVariants[variant],
           buttonSizes[size],
           className

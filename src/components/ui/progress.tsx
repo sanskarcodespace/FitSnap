@@ -13,7 +13,7 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
     return (
       <div
         ref={ref}
-        className={cn("relative h-2 w-full overflow-hidden rounded-full bg-[var(--color-secondary-200)]", className)}
+        className={cn("relative h-2 w-full overflow-hidden rounded-full bg-[var(--color-neutral-200)]", className)}
         {...props}
       >
         <div
@@ -50,7 +50,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
       >
         <svg className="rotate-[-90deg]" width={size} height={size}>
           <circle
-            className="text-[var(--color-secondary-200)]"
+            className="text-[var(--color-neutral-200)]"
             strokeWidth={strokeWidth}
             stroke="currentColor"
             fill="transparent"

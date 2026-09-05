@@ -2,12 +2,12 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = {
-  default: "bg-[var(--color-primary-100)] text-[var(--color-primary-800)] border-[var(--color-primary-200)]",
-  secondary: "bg-[var(--color-secondary-100)] text-[var(--color-secondary-800)] border-[var(--color-secondary-200)]",
-  success: "bg-[var(--color-success-bg)] text-[var(--color-success-text)] border-[#bbf7d0]",
-  warning: "bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] border-[#fde68a]",
-  error: "bg-[var(--color-error-bg)] text-[var(--color-error-text)] border-[#fecaca]",
-  info: "bg-[var(--color-info-bg)] text-[var(--color-info-text)] border-[#bfdbfe]",
+  default: "bg-[var(--color-primary-50)] text-[var(--color-primary-800)] border-[var(--color-primary-200)]",
+  secondary: "bg-[var(--color-neutral-100)] text-[var(--color-neutral-800)] border-[var(--color-neutral-200)]",
+  success: "bg-[var(--color-success-bg)] text-[var(--color-success-text)] border-[var(--color-accent)]/20",
+  warning: "bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] border-[var(--color-warning-text)]/20",
+  error: "bg-[var(--color-error-bg)] text-[var(--color-error-text)] border-[var(--color-error-text)]/20",
+  info: "bg-[var(--color-info-bg)] text-[var(--color-info-text)] border-[var(--color-primary-300)]/20",
 }
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {

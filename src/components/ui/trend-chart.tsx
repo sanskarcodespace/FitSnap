@@ -43,7 +43,7 @@ export function TrendChart({
 
   if (!data || data.length === 0) {
     return (
-      <div className={`flex items-center justify-center bg-[var(--color-neutral-50)] rounded-xl border border-[var(--color-neutral-200)] ${className}`} style={{ height }}>
+      <div className={`flex items-center justify-center bg-[var(--color-neutral-50)] rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] ${className}`} style={{ height }}>
         <p className="text-[var(--color-neutral-500)] text-sm">No data available</p>
       </div>
     );
@@ -136,7 +136,7 @@ export function TrendChart({
                   y1={y} 
                   x2={width - padding.right} 
                   y2={y} 
-                  stroke="var(--color-neutral-200)" 
+                  stroke="var(--color-neutral-100)" 
                   strokeDasharray={ratio === 0 ? "" : "4 4"}
                   strokeWidth="1"
                 />
@@ -210,7 +210,7 @@ export function TrendChart({
                     cx={x} 
                     cy={getY(point.value)} 
                     r="4" 
-                    fill="white" 
+                    fill="var(--background)" 
                     stroke={metricColor} 
                     strokeWidth="2" 
                   />

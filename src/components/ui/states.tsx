@@ -7,7 +7,7 @@ export function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("animate-pulse rounded-[var(--radius-md)] bg-[var(--color-secondary-200)]", className)}
+      className={cn("rounded-[var(--radius-md)] animate-shimmer", className)}
       {...props}
     />
   )
@@ -49,7 +49,7 @@ export function EmptyState({ className, icon, title, description, action, ...pro
       )}
       {...props}
     >
-      {icon && <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-secondary-100)] text-[var(--color-secondary-500)]">{icon}</div>}
+      {icon && <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)]">{icon}</div>}
       <h3 className="mb-1 text-[var(--text-h4-size)] font-medium text-[var(--foreground)]">{title}</h3>
       {description && <p className="mb-4 text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] max-w-sm">{description}</p>}
       {action && <div>{action}</div>}

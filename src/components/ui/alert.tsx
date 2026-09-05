@@ -8,10 +8,10 @@ export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
 
 const alertVariants = {
   default: "bg-[var(--background)] text-[var(--foreground)] border-[var(--color-neutral-200)]",
-  success: "bg-[var(--color-success-bg)] text-[var(--color-success-text)] border-[#bbf7d0]",
-  warning: "bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] border-[#fde68a]",
-  error: "bg-[var(--color-error-bg)] text-[var(--color-error-text)] border-[#fecaca]",
-  info: "bg-[var(--color-info-bg)] text-[var(--color-info-text)] border-[#bfdbfe]",
+  success: "bg-[var(--color-success-bg)] text-[var(--color-success-text)] border-[var(--color-accent)]/20",
+  warning: "bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] border-[var(--color-warning-text)]/20",
+  error: "bg-[var(--color-error-bg)] text-[var(--color-error-text)] border-[var(--color-error-text)]/20",
+  info: "bg-[var(--color-info-bg)] text-[var(--color-info-text)] border-[var(--color-primary-300)]/20",
 }
 
 export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
