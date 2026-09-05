@@ -71,9 +71,9 @@ export async function signup(formData: FormData) {
       maxAge: 60 * 60 * 24 // 24 hours
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Signup error:", error)
-    return { error: "Failed to create account" }
+    return { error: `Failed to create account: ${error.message || String(error)}` }
   }
 
   // Route based on role

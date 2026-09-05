@@ -70,9 +70,9 @@ export async function login(formData: FormData) {
       maxAge: 60 * 60 * 24 // 24 hours
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Login error:", error)
-    return { error: "Failed to log in" }
+    return { error: `Failed to log in: ${error.message || String(error)}` }
   }
 
   // Determine routing based on role
