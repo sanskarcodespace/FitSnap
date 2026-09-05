@@ -193,7 +193,6 @@ export function IndividualOnboardingForm({ initialData = {} }: { initialData?: a
                 value={currentWeight}
                 onChange={e => {
                   setCurrentWeight(e.target.value)
-                  if (goal === "Weight Maintenance") setTargetWeight(e.target.value)
                 }}
                 required
               />

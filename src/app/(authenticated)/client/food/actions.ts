@@ -107,6 +107,44 @@ export async function analyzeFoodTextAction(name: string, portion: string) {
   }
 }
 
+export async function calculateNutritionAction(
+  items: { name: string; quantity: number; unit: string }[]
+) {
+  const session = await getClientSession()
+  if (!session) return { error: "Unauthorized" }
+
+  const rateLimit = checkRateLimit(`calc_nutrition_${session.userId}`, { windowMs: 60000, max: 10 })
+  if (!rateLimit.success) {
+    return { error: "Too many requests. Please try again later." }
+  }
+
+  if (!items || items.length === 0) {
+    return { error: "No food items provided." }
+  }
+
+  // Validate each item
+  for (const item of items) {
+    if (!item.name || item.name.trim().length === 0) {
+      return { error: "All food items must have a name." }
+    }
+    if (typeof item.quantity !== "number" || item.quantity <= 0) {
+      return { error: `Invalid quantity for "${item.name}". Must be a positive number.` }
+    }
+    if (!item.unit || item.unit.trim().length === 0) {
+      return { error: `Missing unit for "${item.name}".` }
+    }
+  }
+
+  try {
+    const { calculateNutritionForItems } = await import("@/lib/ai/foodRecognition")
+    const results = await calculateNutritionForItems(items)
+    return { success: true, items: results }
+  } catch (error: any) {
+    console.error("Nutrition calculation error:", error)
+    return { error: "Failed to calculate nutrition. Please try again." }
+  }
+}
+
 export type SaveMealInput = {
   id?: string;
   date: string;
