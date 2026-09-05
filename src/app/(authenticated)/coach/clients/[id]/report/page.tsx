@@ -193,7 +193,7 @@ export default async function ClientReportPage(props: {
                 {report.metrics.habits.items.map(habit => (
                   <div key={habit.id} className="flex justify-between items-center p-3 bg-neutral-50 rounded-lg border border-neutral-100">
                     <span className="font-medium">{habit.name}</span>
-                    <span className="text-sm font-bold bg-white px-3 py-1 border border-neutral-200 rounded-full text-[var(--color-neutral-700)]">
+                    <span className="text-sm font-bold bg-[var(--background)] px-3 py-1 border border-neutral-200 rounded-full text-[var(--color-neutral-700)]">
                       {habit.completed} / {habit.target} days
                     </span>
                   </div>

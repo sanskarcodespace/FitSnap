@@ -83,7 +83,7 @@ export function CoachDietTab({ connectionId, dietPlans }: { connectionId: string
       )}
 
       {/* Plan History Section */}
-      <div className="border border-[var(--color-neutral-200)] rounded-lg bg-white overflow-hidden shadow-sm">
+      <div className="border border-[var(--color-neutral-200)] rounded-lg bg-[var(--background)] overflow-hidden shadow-sm">
         <button 
           className="w-full flex items-center justify-between p-4 bg-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-100)] transition-colors"
           onClick={() => setHistoryExpanded(!historyExpanded)}
@@ -104,7 +104,7 @@ export function CoachDietTab({ connectionId, dietPlans }: { connectionId: string
                 {archivedPlans.map((plan) => (
                   <div key={plan.id} className="border border-[var(--color-neutral-200)] rounded-lg overflow-hidden">
                     <button 
-                      className="w-full flex items-center justify-between p-3 bg-white hover:bg-[var(--color-neutral-50)] transition-colors text-left"
+                      className="w-full flex items-center justify-between p-3 bg-[var(--background)] hover:bg-[var(--color-neutral-50)] transition-colors text-left"
                       onClick={() => setExpandedArchivedId(expandedArchivedId === plan.id ? null : plan.id)}
                     >
                       <div>

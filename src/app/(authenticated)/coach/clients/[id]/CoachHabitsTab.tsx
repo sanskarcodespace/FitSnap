@@ -308,7 +308,7 @@ export function CoachHabitsTab({
         : "No specific target";
 
     return (
-      <div key={habit.id} className="p-4 bg-white rounded-xl border border-[var(--color-neutral-200)] shadow-sm space-y-4">
+      <div key={habit.id} className="p-4 bg-[var(--background)] rounded-xl border border-[var(--color-neutral-200)] shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h4 className="font-bold text-[var(--color-neutral-800)]">{habit.name}</h4>
@@ -462,7 +462,7 @@ export function CoachHabitsTab({
                           <input
                             type="text"
                             required
-                            className="w-full px-3 py-1.5 bg-white border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
+                            className="w-full px-3 py-1.5 bg-[var(--background)] border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
                             placeholder="e.g. 10-minute walk after dinner"
                             value={item.name}
                             onChange={(e) => handleItemChange(index, "name", e.target.value)}
@@ -474,7 +474,7 @@ export function CoachHabitsTab({
                           <label className="text-xs font-semibold text-[var(--color-neutral-600)]">Target Frequency</label>
                           <div className="flex gap-2">
                             <select
-                              className="flex-1 px-3 py-1.5 bg-white border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
+                              className="flex-1 px-3 py-1.5 bg-[var(--background)] border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
                               value={item.targetFrequency}
                               onChange={(e) => handleItemChange(index, "targetFrequency", e.target.value)}
                             >
@@ -489,7 +489,7 @@ export function CoachHabitsTab({
                                 required
                                 min={1}
                                 max={7}
-                                className="w-16 px-2 py-1.5 bg-white border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none text-center focus:ring-1 focus:ring-[var(--color-primary-500)]"
+                                className="w-16 px-2 py-1.5 bg-[var(--background)] border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none text-center focus:ring-1 focus:ring-[var(--color-primary-500)]"
                                 placeholder="1-7"
                                 value={item.targetTimesPerWeek || ""}
                                 onChange={(e) => handleItemChange(index, "targetTimesPerWeek", e.target.value)}
@@ -503,7 +503,7 @@ export function CoachHabitsTab({
                         <label className="text-xs font-semibold text-[var(--color-neutral-600)]">Description (Optional)</label>
                         <input
                           type="text"
-                          className="w-full px-3 py-1.5 bg-white border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
+                          className="w-full px-3 py-1.5 bg-[var(--background)] border border-[var(--color-neutral-300)] rounded-lg text-sm outline-none focus:ring-1 focus:ring-[var(--color-primary-500)]"
                           placeholder="Provide details or context on how to perform this habit..."
                           value={item.description || ""}
                           onChange={(e) => handleItemChange(index, "description", e.target.value)}
@@ -582,7 +582,7 @@ export function CoachHabitsTab({
           }
         />
       ) : (
-        <Card className="shadow-sm border-[var(--color-neutral-200)] bg-white">
+        <Card className="shadow-sm border-[var(--color-neutral-200)] bg-[var(--background)]">
           <CardHeader className="border-b border-[var(--color-neutral-100)]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
@@ -683,7 +683,7 @@ export function CoachHabitsTab({
           </div>
 
           {/* Past Habits */}
-          <div className="border border-[var(--color-neutral-200)] rounded-lg bg-white overflow-hidden shadow-sm">
+          <div className="border border-[var(--color-neutral-200)] rounded-lg bg-[var(--background)] overflow-hidden shadow-sm">
             <button
               className="w-full flex items-center justify-between p-4 bg-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-100)] transition-colors"
               onClick={() => setPastExpanded(!pastExpanded)}
@@ -706,7 +706,7 @@ export function CoachHabitsTab({
           </div>
 
           {/* Plan History */}
-          <div className="border border-[var(--color-neutral-200)] rounded-lg bg-white overflow-hidden shadow-sm">
+          <div className="border border-[var(--color-neutral-200)] rounded-lg bg-[var(--background)] overflow-hidden shadow-sm">
             <button
               className="w-full flex items-center justify-between p-4 bg-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-100)] transition-colors"
               onClick={() => setPlanHistoryExpanded(!planHistoryExpanded)}
@@ -724,7 +724,7 @@ export function CoachHabitsTab({
                 ) : (
                   archivedPlans.map(plan => (
                     <Card key={plan.id} className="shadow-sm border-[var(--color-neutral-200)]">
-                      <CardHeader className="py-3 bg-white border-b border-[var(--color-neutral-100)]">
+                      <CardHeader className="py-3 bg-[var(--background)] border-b border-[var(--color-neutral-100)]">
                         <div className="flex justify-between items-center">
                           <CardTitle className="text-base font-bold text-[var(--color-neutral-800)]">{plan.title}</CardTitle>
                           <span className="text-xs text-[var(--color-neutral-500)]">
@@ -732,7 +732,7 @@ export function CoachHabitsTab({
                           </span>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-4 space-y-3 bg-white">
+                      <CardContent className="p-4 space-y-3 bg-[var(--background)]">
                         {plan.overview && <p className="text-sm text-[var(--color-neutral-600)] whitespace-pre-wrap">{plan.overview}</p>}
                         
                         <div>

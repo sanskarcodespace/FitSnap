@@ -272,7 +272,7 @@ export function WorkoutPlanForm({ connectionId, initialData, isStartingNewPlan, 
                   ) : (
                     <div className="space-y-3">
                       {session.exercises.map((exercise, eIndex) => (
-                        <div key={exercise.id} className="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-md border border-[var(--color-neutral-200)] relative">
+                        <div key={exercise.id} className="flex flex-col md:flex-row gap-3 bg-[var(--background)] p-3 rounded-md border border-[var(--color-neutral-200)] relative">
                           <div className="flex-1 space-y-3 mr-6 md:mr-0">
                             <div className="flex flex-col md:flex-row gap-3">
                               <div className="flex-1 space-y-1">

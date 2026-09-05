@@ -104,7 +104,7 @@ export function CoachProgressTab({ clientId }: { clientId: string }) {
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
+        <div className="bg-[var(--background)] p-4 sm:p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
           <TrendChart 
             data={chartData} 
             referenceLine={weightSummary?.hasWeightGoal ? weightSummary?.targetWeight : undefined}
@@ -201,7 +201,7 @@ export function CoachProgressTab({ clientId }: { clientId: string }) {
           </Select>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
+        <div className="bg-[var(--background)] p-4 sm:p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
           <TrendChart 
             data={chartData} 
             metricColor="var(--color-secondary-500)"
@@ -250,7 +250,7 @@ export function CoachProgressTab({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-6">
       {/* Controls Area */}
-      <div className="flex flex-col md:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 items-end bg-[var(--background)] p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
         <PeriodSelector 
           period={period}
           onPeriodChange={(p, s, e) => {
@@ -266,7 +266,7 @@ export function CoachProgressTab({ clientId }: { clientId: string }) {
       </div>
 
       <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="w-full">
-        <TabsList className="mb-6 bg-white border border-[var(--color-neutral-200)] shadow-sm">
+        <TabsList className="mb-6 bg-[var(--background)] border border-[var(--color-neutral-200)] shadow-sm">
           <TabsTrigger value="weight">Weight</TabsTrigger>
           <TabsTrigger value="measurements">Body Measurements</TabsTrigger>
         </TabsList>

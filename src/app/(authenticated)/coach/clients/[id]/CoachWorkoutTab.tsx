@@ -89,7 +89,7 @@ export function CoachWorkoutTab({
       )}
 
       {/* Plan History Section */}
-      <div className="border border-[var(--color-neutral-200)] rounded-lg bg-white overflow-hidden shadow-sm">
+      <div className="border border-[var(--color-neutral-200)] rounded-lg bg-[var(--background)] overflow-hidden shadow-sm">
         <button 
           className="w-full flex items-center justify-between p-4 bg-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-100)] transition-colors"
           onClick={() => setHistoryExpanded(!historyExpanded)}
@@ -110,7 +110,7 @@ export function CoachWorkoutTab({
                 {archivedPlans.map((plan) => (
                   <div key={plan.id} className="border border-[var(--color-neutral-200)] rounded-lg overflow-hidden">
                     <button 
-                      className="w-full flex items-center justify-between p-3 bg-white hover:bg-[var(--color-neutral-50)] transition-colors text-left"
+                      className="w-full flex items-center justify-between p-3 bg-[var(--background)] hover:bg-[var(--color-neutral-50)] transition-colors text-left"
                       onClick={() => setExpandedArchivedId(expandedArchivedId === plan.id ? null : plan.id)}
                     >
                       <div>
@@ -135,7 +135,7 @@ export function CoachWorkoutTab({
       </div>
 
       {/* Recent Client Logs Section */}
-      <div className="border border-[var(--color-neutral-200)] rounded-lg bg-white overflow-hidden shadow-sm mt-8">
+      <div className="border border-[var(--color-neutral-200)] rounded-lg bg-[var(--background)] overflow-hidden shadow-sm mt-8">
         <div className="p-4 border-b border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] flex items-center gap-2">
           <CheckSquare className="w-5 h-5 text-[var(--color-neutral-500)]" />
           <h3 className="font-semibold text-[var(--color-neutral-800)]">Recent Client Workouts (Last 7 Days)</h3>

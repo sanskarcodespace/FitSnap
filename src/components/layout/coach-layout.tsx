@@ -46,7 +46,7 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
     .toUpperCase()
 
   return (
-    <div className="flex min-h-screen w-full bg-[var(--color-secondary-50)]">
+    <div className="flex min-h-screen w-full bg-[var(--color-neutral-50)]">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-[var(--background)] focus:text-[var(--foreground)] focus:font-medium">
         Skip to main content
       </a>

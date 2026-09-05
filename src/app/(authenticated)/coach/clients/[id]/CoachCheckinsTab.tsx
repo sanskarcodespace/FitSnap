@@ -138,7 +138,7 @@ export function CoachCheckinsTab({ clientId }: CoachCheckinsTabProps) {
   return (
     <div className="space-y-6">
       {!loading && stats?.history.length === 0 ? (
-        <div className="bg-white rounded-xl p-8 shadow-sm border border-[var(--color-neutral-200)] text-center flex flex-col items-center justify-center">
+        <div className="bg-[var(--background)] rounded-xl p-8 shadow-sm border border-[var(--color-neutral-200)] text-center flex flex-col items-center justify-center">
           <ClipboardList className="w-12 h-12 text-[var(--color-neutral-300)] mb-4" />
           <h2 className="text-xl font-bold text-[var(--color-neutral-800)] mb-2">No check-ins logged yet</h2>
           <p className="text-[var(--color-neutral-500)] mb-6 max-w-sm">
@@ -159,7 +159,7 @@ export function CoachCheckinsTab({ clientId }: CoachCheckinsTabProps) {
                       className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border ${
                         metric === m
                           ? "bg-[var(--color-neutral-900)] text-white border-[var(--color-neutral-900)]"
-                          : "bg-white text-[var(--color-neutral-600)] border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)]"
+                          : "bg-[var(--background)] text-[var(--color-neutral-600)] border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)]"
                       }`}
                     >
                       {getMetricLabel(m)}
@@ -245,7 +245,7 @@ export function CoachCheckinsTab({ clientId }: CoachCheckinsTabProps) {
               if (entry.steps) parts.push(`Steps: ${entry.steps.toLocaleString()}`);
 
               return (
-                <div key={entry.id} className="bg-white rounded-lg border border-[var(--color-neutral-200)] p-4 shadow-sm">
+                <div key={entry.id} className="bg-[var(--background)] rounded-lg border border-[var(--color-neutral-200)] p-4 shadow-sm">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[var(--color-neutral-500)]" />

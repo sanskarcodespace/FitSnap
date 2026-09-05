@@ -151,7 +151,7 @@ export default async function ClientDetailPage({
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
       {/* Header Profile Summary */}
-      <div className="flex flex-col md:flex-row gap-6 items-start md:items-center bg-white p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
+      <div className="flex flex-col md:flex-row gap-6 items-start md:items-center bg-[var(--background)] p-6 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
         <Avatar 
           initials={clientName.substring(0, 2).toUpperCase()} 
           size="lg" 

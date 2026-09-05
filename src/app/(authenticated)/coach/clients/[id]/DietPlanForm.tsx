@@ -201,7 +201,7 @@ export function DietPlanForm({ connectionId, initialData, isStartingNewPlan, onC
                   <div className="space-y-2">
                     <Label>Meal Type</Label>
                     <select 
-                      className="flex h-10 w-full rounded-md border border-[var(--color-neutral-300)] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+                      className="flex h-10 w-full rounded-md border border-[var(--color-neutral-300)] bg-[var(--background)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
                       value={meal.mealType}
                       onChange={(e) => handleMealChange(meal.id, "mealType", e.target.value)}
                     >

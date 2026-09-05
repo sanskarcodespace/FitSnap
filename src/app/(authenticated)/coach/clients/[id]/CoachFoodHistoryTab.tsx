@@ -151,7 +151,7 @@ export function CoachFoodHistoryTab({ clientId }: { clientId: string }) {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       
       {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 items-end bg-[var(--background)] p-4 rounded-xl border border-[var(--color-neutral-200)] shadow-sm">
         <PeriodSelector 
           period={period}
           onPeriodChange={(p, s, e) => {
