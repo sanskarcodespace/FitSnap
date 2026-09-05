@@ -122,7 +122,7 @@ export function IndividualLayout({ user, children, onLogout }: IndividualLayoutP
                 <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
                 <div className="absolute right-0 mt-2 w-48 bg-[var(--background)] rounded-md shadow-lg py-1 z-50 border border-[var(--color-neutral-200)] animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-4 py-2 border-b border-[var(--color-neutral-100)] truncate">
-                    <p className="text-sm font-medium text-[var(--color-neutral-900)] truncate">{user.name}</p>
+                    <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
                   </div>
                   <Link 
                     href="/individual/profile/edit"
