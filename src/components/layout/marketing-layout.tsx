@@ -85,7 +85,10 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
           </div>
         </div>
         <div className="container mx-auto px-6 max-w-5xl mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between text-xs text-white/40">
-          <p>&copy; {new Date().getFullYear()} FitSnap. All rights reserved.</p>
+          <div className="flex flex-col md:flex-row items-center md:gap-4">
+            <p>&copy; {new Date().getFullYear()} FitSnap. All rights reserved.</p>
+            <p className="mt-2 md:mt-0 font-medium">Crafted by Sanskar</p>
+          </div>
           <div className="flex gap-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-white transition-colors">Twitter</a>
             <a href="#" className="hover:text-white transition-colors">LinkedIn</a>

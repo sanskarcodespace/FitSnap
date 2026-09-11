@@ -143,6 +143,9 @@ export function ClientLayout({ user, children, onLogout }: ClientLayoutProps) {
                       Log Out
                     </button>
                   )}
+                  <div className="px-4 py-2 border-t border-[var(--color-neutral-100)] text-center">
+                    <p className="text-[10px] text-[var(--color-neutral-400)] font-medium uppercase tracking-wider">Crafted by Sanskar</p>
+                  </div>
                 </div>
               </>
             )}

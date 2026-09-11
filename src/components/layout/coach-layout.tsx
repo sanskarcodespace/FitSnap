@@ -110,6 +110,9 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
               Log Out
             </button>
           )}
+          <div className="mt-4 text-center">
+            <p className="text-[10px] text-[var(--color-neutral-400)] font-medium uppercase tracking-wider">Crafted by Sanskar</p>
+          </div>
         </div>
       </aside>
 
@@ -183,6 +186,9 @@ export function CoachLayout({ user, children, onLogout }: CoachLayoutProps) {
                 Log Out
               </Button>
             )}
+            <div className="mt-4 text-center">
+              <p className="text-[10px] text-[var(--color-neutral-400)] font-medium uppercase tracking-wider">Crafted by Sanskar</p>
+            </div>
           </div>
         </div>
       )}
