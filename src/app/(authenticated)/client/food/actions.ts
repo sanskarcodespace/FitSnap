@@ -155,6 +155,7 @@ export type SaveMealInput = {
     name: string;
     portionDescription?: string;
     originType?: string; // "manual" or "ai_detected"
+    groupName?: string | null; // Groups AI-detected components into one dish
     calories: number;
     proteinGrams: number;
     carbGrams: number;
@@ -212,6 +213,7 @@ export async function saveMealLog(input: SaveMealInput) {
               name: item.name,
               portionDescription: item.portionDescription || null,
               originType: item.originType || "manual",
+              groupName: item.groupName || null,
               calories: item.calories,
               proteinGrams: item.proteinGrams,
               carbGrams: item.carbGrams,
@@ -235,6 +237,7 @@ export async function saveMealLog(input: SaveMealInput) {
               name: item.name,
               portionDescription: item.portionDescription || null,
               originType: item.originType || "manual",
+              groupName: item.groupName || null,
               calories: item.calories,
               proteinGrams: item.proteinGrams,
               carbGrams: item.carbGrams,

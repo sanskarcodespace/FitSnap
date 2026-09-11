@@ -24,6 +24,7 @@ export type DetectedFoodRaw = {
   quantity: number;
   unit: string;
   isEstimated: boolean;
+  dishName?: string | null; // e.g. "Burger" if this component belongs to a grouped dish
 };
 
 /** Food item with full nutrition after the "Calculate Nutrition" step */
@@ -126,13 +127,16 @@ Example output:
  * Analyzes a food image and returns detected food items with quantity estimates.
  * This is the FIRST step — it detects foods and estimates portions but does NOT
  * calculate full nutrition. That happens in calculateNutritionForItems().
+ * 
+ * Also performs DISH GROUPING: if detected components form a recognizable dish
+ * (e.g. bun + patty + cheese = Burger), each component gets a `dishName` field.
  */
 export async function analyzeFoodImage(image: Buffer | string, filename?: string): Promise<DetectedFoodRaw[]> {
   if (process.env.MOCK_AI === "true") {
     return [
-      { name: "Rice", quantity: 250, unit: "g", isEstimated: true },
-      { name: "Chicken", quantity: 150, unit: "g", isEstimated: true },
-      { name: "Dal", quantity: 120, unit: "g", isEstimated: true },
+      { name: "Rice", quantity: 250, unit: "g", isEstimated: true, dishName: null },
+      { name: "Chicken", quantity: 150, unit: "g", isEstimated: true, dishName: null },
+      { name: "Dal", quantity: 120, unit: "g", isEstimated: true, dishName: null },
     ];
   }
 
@@ -154,33 +158,64 @@ export async function analyzeFoodImage(image: Buffer | string, filename?: string
 You are a highly capable AI food recognition assistant. I am providing you with a photo of a meal.
 
 Your task is to:
-1. Identify EACH distinct food item visible in the photo.
+1. Identify EACH distinct food item/component visible in the photo.
 2. Estimate the quantity/portion for each food item based on visual cues.
+3. CRITICALLY: Determine if multiple detected components belong to a SINGLE recognizable dish.
 
-IMPORTANT RULES FOR QUANTITY ESTIMATION:
-- Use grams (g) for foods that are naturally weighed: rice, chicken, meat, dal, paneer, salad, etc.
-- Use "piece" or "pieces" for countable items: eggs, roti, chapati, banana, apple, cookies, etc.
+═══ DISH GROUPING RULES ═══
+
+When multiple detected components clearly form ONE recognizable dish, assign the SAME "dishName" to all of them.
+
+Examples of dishes that should be grouped:
+- Bun + Patty + Cheese + Lettuce + Sauce → dishName: "Burger"
+- Pizza base + Cheese + Tomato sauce + Toppings → dishName: "Pizza"
+- Bread + Chicken + Cheese + Vegetables + Sauce → dishName: "Chicken Sandwich"
+- Rice + Dal + Roti + Sabzi + Curd → dishName: "Indian Thali"
+- Tortilla + Chicken + Vegetables + Sauce → dishName: "Chicken Wrap"
+- Rice + Chicken + Vegetables + Sauce in a bowl → dishName: "Chicken Rice Bowl"
+- Pasta + Sauce + Cheese → dishName: "Pasta"
+- Rice + Spiced Meat/Chicken layered → dishName: "Biryani"
+- Bread + Egg + Cheese → dishName: "Egg Sandwich"
+
+When items are SEPARATE unrelated foods (e.g. a burger AND a separate coke AND separate fries), 
+each gets its OWN dishName or null:
+- Burger components → dishName: "Burger"
+- Fries → dishName: null (standalone)
+- Coke → dishName: null (standalone)
+
+If you cannot confidently identify a specific dish name, use a sensible grouped name:
+- "Mixed Meal", "Mixed Plate", or the most descriptive name possible.
+
+For standalone items that are NOT part of a composite dish, set dishName to null.
+
+═══ QUANTITY ESTIMATION RULES ═══
+- Use grams (g) for foods naturally weighed: rice, chicken, meat, dal, paneer, salad, etc.
+- Use "piece" or "pieces" for countable items: eggs, roti, chapati, banana, cookies, etc.
 - Use "bowl" for soups, cereals, or foods served in a bowl.
 - Use "cup" for beverages or measured servings.
 - Use "serving" only when no better unit applies.
 - NEVER force everything into grams. Use the most natural unit for each food.
 - All quantities are ESTIMATES based on visual information. Mark them as estimated.
 
-Please return the result strictly as a JSON array of objects. Do not include markdown formatting or any other text outside the JSON array.
-If you cannot identify any food, or if the image is blurry, return an empty array: []
+═══ OUTPUT FORMAT ═══
 
-For each food item, provide an object with these fields:
-- "name" (string): The specific name of the food item (e.g. "Basmati Rice", "Grilled Chicken Breast", "Roti", "Boiled Egg").
+Return a JSON array of objects. Do not include markdown formatting or any other text.
+If you cannot identify any food, return an empty array: []
+
+Each object must have:
+- "name" (string): The specific name of the food component (e.g. "Hamburger Bun", "Beef Patty").
 - "quantity" (number): The estimated quantity as a number.
-- "unit" (string): The unit of measurement. One of: "g", "kg", "ml", "piece", "pieces", "bowl", "cup", "serving".
+- "unit" (string): One of: "g", "kg", "ml", "piece", "pieces", "bowl", "cup", "serving".
 - "isEstimated" (boolean): Always true for image-based detection.
+- "dishName" (string or null): The recognizable dish name if this component belongs to a grouped dish, or null if standalone.
 
-Example output for a plate with rice, chicken, eggs, and roti:
+Example output for a plate with a burger and a separate coke:
 [
-  { "name": "Steamed Rice", "quantity": 250, "unit": "g", "isEstimated": true },
-  { "name": "Grilled Chicken", "quantity": 150, "unit": "g", "isEstimated": true },
-  { "name": "Boiled Egg", "quantity": 2, "unit": "pieces", "isEstimated": true },
-  { "name": "Roti", "quantity": 2, "unit": "pieces", "isEstimated": true }
+  { "name": "Hamburger Bun", "quantity": 1, "unit": "piece", "isEstimated": true, "dishName": "Burger" },
+  { "name": "Beef Patty", "quantity": 150, "unit": "g", "isEstimated": true, "dishName": "Burger" },
+  { "name": "Cheddar Cheese", "quantity": 1, "unit": "piece", "isEstimated": true, "dishName": "Burger" },
+  { "name": "Lettuce", "quantity": 20, "unit": "g", "isEstimated": true, "dishName": "Burger" },
+  { "name": "Coca-Cola", "quantity": 330, "unit": "ml", "isEstimated": true, "dishName": null }
 ]
 `;
 
@@ -227,6 +262,7 @@ Example output for a plate with rice, chicken, eggs, and roti:
           quantity: typeof item.quantity === "number" && item.quantity > 0 ? item.quantity : 0,
           unit: typeof item.unit === "string" ? item.unit : "g",
           isEstimated: true,
+          dishName: typeof item.dishName === "string" && item.dishName.trim() ? item.dishName.trim() : null,
         }));
       }
       return [];

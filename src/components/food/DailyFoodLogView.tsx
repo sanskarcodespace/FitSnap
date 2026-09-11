@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { getThumbnailUrl } from "@/lib/utils"
 import { Tooltip } from "@/components/ui/tooltip"
 import { ProgressRing, ProgressBar } from "@/components/ui/progress"
+import { getFoodEmoji } from "@/lib/utils/food-emoji"
 import type { NutritionSummary } from "@/lib/data/nutrition"
 
 type DailyFoodLogViewProps = {
@@ -35,6 +36,11 @@ export function DailyFoodLogView({
 }: DailyFoodLogViewProps) {
   
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null)
+  const [expandedGroups, setExpandedGroups] = React.useState<Record<string, boolean>>({})
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }))
+  }
 
   const meals = summary.meals;
   const waterEntries = summary.waterEntries;
@@ -336,29 +342,142 @@ export function DailyFoodLogView({
                            </div>
                          </div>
                       )}
-                      {meal.foodItems.map((item: any) => (
-                        <div key={item.id} className="p-4 flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-[var(--color-neutral-800)]">{item.name}</p>
-                              {item.originType === "ai_detected" && (
-                                <Tooltip content="Detected by AI">
-                                  <span className="text-[10px] bg-purple-100 text-purple-700 px-1 rounded font-medium">AI</span>
-                                </Tooltip>
-                              )}
-                            </div>
-                            {item.portionDescription && (
-                              <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">{item.portionDescription}</p>
-                            )}
-                          </div>
-                          <div className="text-right flex flex-col items-end">
-                            <p className="font-medium text-[var(--color-neutral-700)]">{item.calories} kcal</p>
-                            <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">
-                              {item.proteinGrams}p · {item.carbGrams}c · {item.fatGrams}f
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                      {/* ─── Grouped Food Items Display ─── */}
+                      {(() => {
+                        // Group food items by groupName
+                        type FoodGroup = { groupName: string | null; items: any[] }
+                        const groups: FoodGroup[] = []
+                        const groupMap = new Map<string, FoodGroup>()
+                        
+                        meal.foodItems.forEach((item: any) => {
+                          const gn = item.groupName || null
+                          if (gn) {
+                            if (groupMap.has(gn)) {
+                              groupMap.get(gn)!.items.push(item)
+                            } else {
+                              const newGroup: FoodGroup = { groupName: gn, items: [item] }
+                              groupMap.set(gn, newGroup)
+                              groups.push(newGroup)
+                            }
+                          } else {
+                            // Standalone item
+                            groups.push({ groupName: null, items: [item] })
+                          }
+                        })
+
+                        return groups.map((group, groupIdx) => {
+                          if (group.groupName && group.items.length > 1) {
+                            // ─── Grouped Dish Card ───
+                            const groupKey = `${meal.id}-${group.groupName}-${groupIdx}`
+                            const isExpanded = expandedGroups[groupKey] || false
+                            const totalCals = group.items.reduce((s: number, i: any) => s + i.calories, 0)
+                            const totalPro = group.items.reduce((s: number, i: any) => s + i.proteinGrams, 0)
+                            const totalCarbs = group.items.reduce((s: number, i: any) => s + i.carbGrams, 0)
+                            const totalFat = group.items.reduce((s: number, i: any) => s + i.fatGrams, 0)
+                            const emoji = getFoodEmoji(group.groupName)
+                            const hasAiItems = group.items.some((i: any) => i.originType === "ai_detected")
+
+                            return (
+                              <div key={groupKey}>
+                                {/* Collapsed dish summary */}
+                                <div className="p-4">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex items-start gap-3">
+                                      <span className="text-2xl leading-none mt-0.5" aria-hidden="true">{emoji}</span>
+                                      <div>
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-semibold text-[var(--color-neutral-800)]">{group.groupName}</p>
+                                          {hasAiItems && (
+                                            <Tooltip content="Components detected by AI">
+                                              <span className="text-[10px] bg-purple-100 text-purple-700 px-1 rounded font-medium">AI</span>
+                                            </Tooltip>
+                                          )}
+                                        </div>
+                                        <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">
+                                          {group.items.length} items · {totalPro}g P · {totalCarbs}g C · {totalFat}g F
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-semibold text-[var(--color-neutral-700)]">{totalCals} kcal</p>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Expand/Collapse Toggle */}
+                                  <button
+                                    className="mt-2 ml-9 text-xs font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] transition-colors flex items-center gap-1"
+                                    onClick={() => toggleGroup(groupKey)}
+                                  >
+                                    <svg 
+                                      xmlns="http://www.w3.org/2000/svg" 
+                                      width="12" 
+                                      height="12" 
+                                      viewBox="0 0 24 24" 
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round"
+                                      className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                    >
+                                      <polyline points="9 18 15 12 9 6"/>
+                                    </svg>
+                                    {isExpanded ? 'Hide Details' : `View Details (${group.items.length} items)`}
+                                  </button>
+                                </div>
+
+                                {/* Expanded ingredient breakdown */}
+                                {isExpanded && (
+                                  <div className="border-t border-[var(--color-neutral-100)] bg-[var(--color-neutral-50)]/40">
+                                    {group.items.map((item: any) => (
+                                      <div key={item.id} className="px-4 py-2.5 ml-9 flex justify-between items-start border-b border-[var(--color-neutral-100)] last:border-b-0">
+                                        <div>
+                                          <p className="text-sm text-[var(--color-neutral-700)]">{item.name}</p>
+                                          {item.portionDescription && (
+                                            <p className="text-[11px] text-[var(--color-neutral-400)] mt-0.5">{item.portionDescription}</p>
+                                          )}
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="text-sm text-[var(--color-neutral-600)]">{item.calories} kcal</p>
+                                          <p className="text-[11px] text-[var(--color-neutral-400)]">
+                                            {item.proteinGrams}p · {item.carbGrams}c · {item.fatGrams}f
+                                          </p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          } else {
+                            // ─── Standalone Item (no group or single item) ───
+                            const item = group.items[0]
+                            return (
+                              <div key={item.id} className="p-4 flex justify-between items-start">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-[var(--color-neutral-800)]">{item.name}</p>
+                                    {item.originType === "ai_detected" && (
+                                      <Tooltip content="Detected by AI">
+                                        <span className="text-[10px] bg-purple-100 text-purple-700 px-1 rounded font-medium">AI</span>
+                                      </Tooltip>
+                                    )}
+                                  </div>
+                                  {item.portionDescription && (
+                                    <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">{item.portionDescription}</p>
+                                  )}
+                                </div>
+                                <div className="text-right flex flex-col items-end">
+                                  <p className="font-medium text-[var(--color-neutral-700)]">{item.calories} kcal</p>
+                                  <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">
+                                    {item.proteinGrams}p · {item.carbGrams}c · {item.fatGrams}f
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
+                        })
+                      })()}
                       
                       <div className="bg-[var(--color-neutral-50)]/50 p-3 text-xs text-[var(--color-neutral-500)] flex justify-end gap-3 border-t border-[var(--color-neutral-100)]">
                         <span>Total: {mealPro}g P</span>

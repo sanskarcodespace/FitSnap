@@ -18,6 +18,7 @@ type FoodItemInput = {
   fiberGrams: number;
   originType?: string; // "manual" | "ai_detected" | "user_corrected"
   originalOriginType?: string; // tracks original source if being edited
+  groupName?: string | null; // dish grouping name (e.g. "Burger")
 }
 
 type MealLogInput = {
@@ -35,6 +36,7 @@ type ReviewFoodItem = {
   quantity: number;
   unit: string;
   isEstimated: boolean;
+  dishName?: string | null; // dish grouping name from AI
 }
 
 /** Calculated nutrition per food item */
@@ -50,6 +52,7 @@ type CalculatedItem = {
   fiberGrams: number;
   sugarGrams: number;
   sodiumMg: number;
+  dishName?: string | null; // dish grouping name
 }
 
 type AddMealDialogProps = {
@@ -247,6 +250,7 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
             quantity: item.quantity || 0,
             unit: item.unit || "g",
             isEstimated: item.isEstimated !== false,
+            dishName: item.dishName || null,
           }))
           setReviewItems(reviewData)
           setIsAiAssisted(true)
@@ -377,7 +381,12 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
       if (res.error) {
         setCalcError(res.error)
       } else if (res.items) {
-        setCalculatedItems(res.items)
+        // Merge dishName from reviewItems onto calculated results
+        const itemsWithDishName = res.items.map((item: CalculatedItem, idx: number) => ({
+          ...item,
+          dishName: reviewItems[idx]?.dishName || null,
+        }))
+        setCalculatedItems(itemsWithDishName)
         setEntryMode("results")
       }
     } catch (e) {
@@ -401,6 +410,7 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
       fatGrams: item.fatGrams,
       fiberGrams: item.fiberGrams,
       originType: "ai_detected" as string,
+      groupName: item.dishName || null,
     }))
 
     onSave(mealType, finalItems, photoReference, "ai_assisted")

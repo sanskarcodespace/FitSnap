@@ -224,6 +224,7 @@ model FoodItem {
   name               String
   portionDescription String?
   originType         String  @default("manual") // "manual" | "ai_detected"
+  groupName          String? // Groups AI-detected components into one dish (e.g. "Burger", "Pizza")
 
   calories     Int
   proteinGrams Int  @default(0)

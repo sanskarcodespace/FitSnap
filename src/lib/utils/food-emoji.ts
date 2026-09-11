@@ -1,0 +1,160 @@
+/**
+ * Maps common dish/food names to food emojis for compact diary display.
+ * Case-insensitive matching with keyword-based fallback.
+ */
+
+const EMOJI_MAP: Record<string, string> = {
+  // Common dishes
+  "burger": "🍔",
+  "cheeseburger": "🍔",
+  "hamburger": "🍔",
+  "pizza": "🍕",
+  "sandwich": "🥪",
+  "hot dog": "🌭",
+  "hotdog": "🌭",
+  "taco": "🌮",
+  "burrito": "🌯",
+  "wrap": "🌯",
+  "sushi": "🍣",
+  "ramen": "🍜",
+  "noodles": "🍜",
+  "pasta": "🍝",
+  "spaghetti": "🍝",
+  "salad": "🥗",
+  "soup": "🍲",
+  "stew": "🍲",
+  "curry": "🍛",
+  "biryani": "🍛",
+  "rice bowl": "🍚",
+  "fried rice": "🍚",
+  "rice": "🍚",
+  "thali": "🍛",
+  "omelette": "🍳",
+  "omelet": "🍳",
+  "pancake": "🥞",
+  "pancakes": "🥞",
+  "waffle": "🧇",
+  "waffles": "🧇",
+  "bread": "🍞",
+  "toast": "🍞",
+  "croissant": "🥐",
+  "bagel": "🥯",
+  "pretzel": "🥨",
+  "fries": "🍟",
+  "french fries": "🍟",
+  "popcorn": "🍿",
+  "donut": "🍩",
+  "doughnut": "🍩",
+  "cake": "🍰",
+  "pie": "🥧",
+  "cookie": "🍪",
+  "cookies": "🍪",
+  "ice cream": "🍦",
+  "chocolate": "🍫",
+  "candy": "🍬",
+  "smoothie": "🥤",
+  "milkshake": "🥤",
+  "juice": "🧃",
+  "coffee": "☕",
+  "tea": "🍵",
+  "beer": "🍺",
+  "wine": "🍷",
+  "cocktail": "🍸",
+  "water": "💧",
+  "coke": "🥤",
+  "cola": "🥤",
+  "soda": "🥤",
+  "milk": "🥛",
+  // Proteins
+  "steak": "🥩",
+  "chicken": "🍗",
+  "fish": "🐟",
+  "shrimp": "🦐",
+  "egg": "🥚",
+  "eggs": "🥚",
+  // Fruits & Vegetables
+  "apple": "🍎",
+  "banana": "🍌",
+  "orange": "🍊",
+  "grapes": "🍇",
+  "strawberry": "🍓",
+  "watermelon": "🍉",
+  "mango": "🥭",
+  "avocado": "🥑",
+  "corn": "🌽",
+  "carrot": "🥕",
+  "potato": "🥔",
+  "tomato": "🍅",
+  // Indian/Asian
+  "dal": "🍲",
+  "daal": "🍲",
+  "roti": "🫓",
+  "chapati": "🫓",
+  "naan": "🫓",
+  "paratha": "🫓",
+  "dosa": "🫓",
+  "idli": "🍚",
+  "samosa": "🥟",
+  "paneer": "🧀",
+  "kebab": "🍢",
+  "tikka": "🍢",
+  // Mixed/Generic
+  "mixed meal": "🍽️",
+  "mixed plate": "🍽️",
+  "meal": "🍽️",
+  "snack": "🍿",
+  "dessert": "🍰",
+  "breakfast": "🍳",
+}
+
+// Keyword patterns for fuzzy matching
+const KEYWORD_PATTERNS: [string, string][] = [
+  ["burger", "🍔"],
+  ["pizza", "🍕"],
+  ["sandwich", "🥪"],
+  ["wrap", "🌯"],
+  ["taco", "🌮"],
+  ["burrito", "🌯"],
+  ["pasta", "🍝"],
+  ["noodle", "🍜"],
+  ["ramen", "🍜"],
+  ["salad", "🥗"],
+  ["soup", "🍲"],
+  ["curry", "🍛"],
+  ["biryani", "🍛"],
+  ["thali", "🍛"],
+  ["rice", "🍚"],
+  ["sushi", "🍣"],
+  ["omelette", "🍳"],
+  ["omelet", "🍳"],
+  ["pancake", "🥞"],
+  ["waffle", "🧇"],
+  ["cake", "🍰"],
+  ["pie", "🥧"],
+  ["smoothie", "🥤"],
+  ["bowl", "🍚"],
+  ["steak", "🥩"],
+  ["chicken", "🍗"],
+  ["fish", "🐟"],
+  ["dal", "🍲"],
+  ["roti", "🫓"],
+  ["chapati", "🫓"],
+  ["dosa", "🫓"],
+  ["kebab", "🍢"],
+  ["fries", "🍟"],
+]
+
+export function getFoodEmoji(name: string): string {
+  const lower = name.toLowerCase().trim()
+  
+  // Exact match first
+  if (EMOJI_MAP[lower]) return EMOJI_MAP[lower]
+  
+  // Keyword match
+  for (const [keyword, emoji] of KEYWORD_PATTERNS) {
+    if (lower.includes(keyword)) return emoji
+  }
+  
+  // Default
+  return "🍽️"
+}
