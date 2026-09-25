@@ -16,6 +16,8 @@ type FoodItemInput = {
   carbGrams: number;
   fatGrams: number;
   fiberGrams: number;
+  sugarGrams?: number | null;
+  sodiumMg?: number | null;
   originType?: string; // "manual" | "ai_detected" | "user_corrected"
   originalOriginType?: string; // tracks original source if being edited
   groupName?: string | null; // dish grouping name (e.g. "Burger")
@@ -96,9 +98,28 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
   const [isCalculating, setIsCalculating] = useState(false)
   const [calcError, setCalcError] = useState<string | null>(null)
 
+  // Current item being edited (manual mode)
+  const [currentItem, setCurrentItem] = useState<FoodItemInput>({
+    id: "",
+    name: "",
+    portionDescription: "",
+    calories: 0,
+    proteinGrams: 0,
+    carbGrams: 0,
+    fatGrams: 0,
+    fiberGrams: 0,
+    originType: "manual"
+  })
+
   // Initialize from initialData if present
   React.useEffect(() => {
     if (isOpen) {
+      setCurrentItem({
+        id: "", name: "", portionDescription: "", calories: 0,
+        proteinGrams: 0, carbGrams: 0, fatGrams: 0, fiberGrams: 0,
+        originType: "manual"
+      })
+
       if (initialData) {
         setMealType(initialData.mealType)
         setItems(initialData.foodItems.map(i => ({...i, id: i.id || Math.random().toString()})))
@@ -125,19 +146,6 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
     }
   }, [isOpen, initialData])
   
-  // Current item being edited (manual mode)
-  const [currentItem, setCurrentItem] = useState<FoodItemInput>({
-    id: "",
-    name: "",
-    portionDescription: "",
-    calories: 0,
-    proteinGrams: 0,
-    carbGrams: 0,
-    fatGrams: 0,
-    fiberGrams: 0,
-    originType: "manual"
-  })
-
   if (!isOpen) return null
 
   // ─── Manual mode handlers (unchanged) ──────────────────────────────────────
@@ -197,6 +205,8 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
           carbGrams: res.item.carbGrams || 0,
           fatGrams: res.item.fatGrams || 0,
           fiberGrams: res.item.fiberGrams || 0,
+          sugarGrams: res.item.sugarGrams ?? null,
+          sodiumMg: res.item.sodiumMg ?? null,
           originType: "ai_detected"
         })
       }
@@ -409,6 +419,8 @@ export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData 
       carbGrams: item.carbGrams,
       fatGrams: item.fatGrams,
       fiberGrams: item.fiberGrams,
+      sugarGrams: item.sugarGrams,
+      sodiumMg: item.sodiumMg,
       originType: "ai_detected" as string,
       groupName: item.dishName || null,
     }))

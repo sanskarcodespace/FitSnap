@@ -5,8 +5,7 @@ import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth/jwt"
 import prisma from "@/lib/db/prisma"
 import { processAndStoreImage } from "@/lib/upload"
-import fs from "fs/promises"
-import path from "path"
+import { isCalendarDate, isNutritionAmount } from "@/lib/food-validation"
 import { checkRateLimit } from "@/lib/rate-limit"
 
 async function getClientSession() {
@@ -118,19 +117,19 @@ export async function calculateNutritionAction(
     return { error: "Too many requests. Please try again later." }
   }
 
-  if (!items || items.length === 0) {
+  if (!Array.isArray(items) || items.length === 0) {
     return { error: "No food items provided." }
   }
 
   // Validate each item
   for (const item of items) {
-    if (!item.name || item.name.trim().length === 0) {
+    if (!item || typeof item.name !== "string" || item.name.trim().length === 0) {
       return { error: "All food items must have a name." }
     }
-    if (typeof item.quantity !== "number" || item.quantity <= 0) {
+    if (typeof item.quantity !== "number" || !Number.isFinite(item.quantity) || item.quantity <= 0) {
       return { error: `Invalid quantity for "${item.name}". Must be a positive number.` }
     }
-    if (!item.unit || item.unit.trim().length === 0) {
+    if (typeof item.unit !== "string" || item.unit.trim().length === 0) {
       return { error: `Missing unit for "${item.name}".` }
     }
   }
@@ -161,6 +160,8 @@ export type SaveMealInput = {
     carbGrams: number;
     fatGrams: number;
     fiberGrams: number;
+    sugarGrams?: number | null;
+    sodiumMg?: number | null;
   }[];
 }
 
@@ -168,8 +169,24 @@ export async function saveMealLog(input: SaveMealInput) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
 
-  if (!input.date || !input.mealType || !input.foodItems || input.foodItems.length === 0) {
-    return { error: "Missing required fields" }
+  if (!input || !Array.isArray(input.foodItems) || input.foodItems.length === 0) {
+    return { error: "Please add at least one food item." }
+  }
+  if (!isCalendarDate(input.date)) return { error: "Please choose a valid date." }
+  if (!["Breakfast", "Lunch", "Dinner", "Snack"].includes(input.mealType)) {
+    return { error: "Please choose a valid meal type." }
+  }
+
+  for (const item of input.foodItems) {
+    if (!item || typeof item.name !== "string" || !item.name.trim()) {
+      return { error: "All food items must have a name." }
+    }
+    const requiredAmounts = [item.calories, item.proteinGrams, item.carbGrams, item.fatGrams, item.fiberGrams]
+    const optionalAmounts = [item.sugarGrams, item.sodiumMg]
+    if (!requiredAmounts.every(isNutritionAmount) ||
+        !optionalAmounts.every(value => value == null || isNutritionAmount(value))) {
+      return { error: "Nutrition values must be non-negative whole numbers." }
+    }
   }
 
   try {
@@ -219,6 +236,8 @@ export async function saveMealLog(input: SaveMealInput) {
               carbGrams: item.carbGrams,
               fatGrams: item.fatGrams,
               fiberGrams: item.fiberGrams,
+              sugarGrams: item.sugarGrams ?? null,
+              sodiumMg: item.sodiumMg ?? null,
             }))
           }
         }
@@ -243,6 +262,8 @@ export async function saveMealLog(input: SaveMealInput) {
               carbGrams: item.carbGrams,
               fatGrams: item.fatGrams,
               fiberGrams: item.fiberGrams,
+              sugarGrams: item.sugarGrams ?? null,
+              sodiumMg: item.sodiumMg ?? null,
             }))
           }
         }
@@ -297,6 +318,11 @@ export async function deleteMealLog(mealId: string) {
 export async function addWater(date: string, amountMl: number) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
+
+  if (!isCalendarDate(date)) return { error: "Please choose a valid date." }
+  if (!isNutritionAmount(amountMl) || amountMl === 0) {
+    return { error: "Water amount must be a positive whole number of milliliters." }
+  }
 
   try {
     await prisma.waterLogEntry.create({
