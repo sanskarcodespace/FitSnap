@@ -61,7 +61,7 @@ export function DashboardHabitsCard({
   return (
     <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">Habits</h2>
+        <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)]">Habits</h2>
         <Link href="/client/habits" className="text-xs font-semibold text-[var(--color-primary-700)] hover:underline">
           View All
         </Link>

@@ -11,9 +11,9 @@ const buttonVariants = {
 }
 
 const buttonSizes = {
-  sm: "h-8 px-3 text-[var(--text-body-sm-size)]",
-  md: "h-10 px-4 py-2",
-  lg: "h-12 px-8 text-[var(--text-body-lg-size)]",
+  sm: "h-9 px-3.5 text-[length:var(--text-body-sm-size)]",
+  md: "h-11 px-5 py-2",
+  lg: "h-12 px-8 text-[length:var(--text-body-lg-size)]",
 }
 
 export interface ButtonProps
@@ -36,7 +36,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "inline-flex items-center justify-center rounded-[var(--radius-md)] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-[var(--background)]",
+          "inline-flex items-center justify-center rounded-[var(--radius-md)] gap-1 font-medium transition-[background-color,box-shadow,transform] duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-[var(--background)]",
           buttonVariants[variant],
           buttonSizes[size],
           className

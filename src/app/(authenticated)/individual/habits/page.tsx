@@ -111,10 +111,10 @@ export default async function IndividualHabitsPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="pb-6">
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
           My Habits
         </h1>
-        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
           Track daily routines and stay consistent with your goals.
         </p>
       </div>

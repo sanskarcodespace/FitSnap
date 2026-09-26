@@ -9,9 +9,10 @@ export interface ModalProps {
   description?: React.ReactNode
   children: React.ReactNode
   footer?: React.ReactNode
+  className?: string
 }
 
-export function Modal({ isOpen, onClose, title, description, children, footer }: ModalProps) {
+export function Modal({ isOpen, onClose, title, description, children, footer, className }: ModalProps) {
   const modalRef = React.useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = React.useRef<HTMLElement | null>(null);
 
@@ -20,7 +21,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
       previouslyFocusedElement.current = document.activeElement as HTMLElement;
       
       const focusableElements = modalRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
       );
       
       if (focusableElements && focusableElements.length > 0) {
@@ -38,7 +39,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
         if (e.key === 'Tab') {
           if (!modalRef.current) return;
           const focusableEls = modalRef.current.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
           ) as NodeListOf<HTMLElement>;
           
           if (focusableEls.length === 0) {
@@ -64,7 +65,11 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
       };
 
       document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        previouslyFocusedElement.current?.focus();
+        previouslyFocusedElement.current = null;
+      };
     } else {
       if (previouslyFocusedElement.current) {
         previouslyFocusedElement.current.focus();
@@ -76,15 +81,16 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
+      <div className="fixed inset-0 bg-[#0d291c]/60" onClick={onClose} aria-hidden="true" />
       <div
         ref={modalRef}
         tabIndex={-1}
         className={cn(
-          "z-50 w-full max-w-lg gap-4 border border-[var(--color-neutral-200)] bg-[var(--background)] p-6 shadow-[var(--shadow-lg)] sm:rounded-[var(--radius-lg)]",
+          "z-50 w-full max-w-lg gap-4 border border-[var(--color-neutral-200)] bg-[var(--background)] p-6 shadow-[var(--shadow-lg)] rounded-[var(--radius-xl)] max-h-[92dvh] overflow-y-auto",
           "md:w-full sm:max-w-[425px]",
-          "motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-200 motion-reduce:transition-none"
+          "motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-200 motion-reduce:transition-none",
+          className
         )}
         role="dialog"
         aria-modal="true"
@@ -93,7 +99,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
       >
         <div className="flex flex-col space-y-1.5 text-center sm:text-left mb-4">
           <div className="flex items-center justify-between">
-            {title && <h2 id="modal-title" className="text-[var(--text-h3-size)] font-semibold leading-none tracking-tight">{title}</h2>}
+            {title && <h2 id="modal-title" className="text-[length:var(--text-h3-size)] font-semibold leading-none tracking-tight">{title}</h2>}
             <button
               onClick={onClose}
               className="rounded-sm ring-offset-[var(--background)] hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2 disabled:pointer-events-none p-2 -mr-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -102,7 +108,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
               <X className="h-5 w-5" />
             </button>
           </div>
-          {description && <p id="modal-description" className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">{description}</p>}
+          {description && <p id="modal-description" className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)]">{description}</p>}
         </div>
         <div className="py-4">
           {children}

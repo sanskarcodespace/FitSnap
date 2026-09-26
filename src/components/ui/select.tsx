@@ -12,7 +12,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           className={cn(
-            "flex h-10 w-full appearance-none rounded-[var(--radius-md)] border border-[var(--color-neutral-300)] bg-transparent px-3 py-2 pr-8 text-[var(--text-body-size)] text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-10 w-full appearance-none rounded-[var(--radius-md)] border border-[var(--color-neutral-300)] bg-transparent px-3 py-2 pr-8 text-[length:var(--text-body-size)] text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-500)] disabled:cursor-not-allowed disabled:opacity-50",
             error && "border-[var(--color-error-text)] focus-visible:ring-[var(--color-error-text)]",
             className
           )}
@@ -26,7 +26,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           </svg>
         </div>
         {error && (
-          <p className="mt-1 text-[var(--text-caption-size)] text-[var(--color-error-text)]">
+          <p className="mt-1 text-[length:var(--text-caption-size)] text-[var(--color-error-text)]">
             {error}
           </p>
         )}

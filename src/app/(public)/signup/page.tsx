@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { AuthFrame } from "@/components/layout/auth-frame"
 import { MarketingLayout } from "@/components/layout/marketing-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,13 +63,9 @@ export default function SignupPage() {
 
   return (
     <MarketingLayout>
-      <div className="relative min-h-[calc(100vh-140px)] flex items-center justify-center overflow-hidden px-4 py-20">
-        {/* Background Gradients */}
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[var(--color-primary-400)] opacity-20 blur-[100px] rounded-full animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[var(--color-secondary-400)] opacity-20 blur-[100px] rounded-full animate-pulse" style={{ animationDuration: '5s' }} />
-
+      <AuthFrame>
         <div className="w-full max-w-lg relative z-10 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-75">
-          <div className="bg-white/80 backdrop-blur-xl border border-[var(--color-neutral-200)] shadow-2xl rounded-3xl p-8 space-y-8">
+          <div className="auth-card space-y-7">
             
             {/* Step 1: Role Selection */}
             {step === 1 && (
@@ -97,7 +94,7 @@ export default function SignupPage() {
                         <User className="w-6 h-6 text-[var(--color-primary-700)]" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-[var(--color-neutral-900)] mb-1">I'm an Individual</h3>
+                        <h3 className="text-lg font-bold text-[var(--color-neutral-900)] mb-1">I&apos;m an Individual</h3>
                         <p className="text-sm text-[var(--color-neutral-600)] leading-relaxed">
                           Track your own food, nutrition, fitness and progress.
                         </p>
@@ -129,7 +126,7 @@ export default function SignupPage() {
                         <Users className="w-6 h-6 text-[var(--color-secondary-700)]" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-[var(--color-neutral-900)] mb-1">I'm a Coach</h3>
+                        <h3 className="text-lg font-bold text-[var(--color-neutral-900)] mb-1">I&apos;m a Coach</h3>
                         <p className="text-sm text-[var(--color-neutral-600)] leading-relaxed">
                           Manage clients, send invitations and monitor their progress.
                         </p>
@@ -163,7 +160,7 @@ export default function SignupPage() {
                   </Alert>
                 )}
 
-                <p className="text-center text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)] pt-2">
+                <p className="text-center text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-600)] pt-2">
                   Already have an account? <Link href="/login" className="text-[var(--color-primary-600)] font-semibold hover:underline">Log in</Link>
                 </p>
               </>
@@ -211,12 +208,12 @@ export default function SignupPage() {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="email" className="text-[var(--color-neutral-700)]">Email Address</Label>
-                    <Input id="email" name="email" type="email" required className="bg-white/50 focus:bg-white transition-colors" />
+                    <Input id="email" name="email" type="email" autoComplete="email" required className="bg-white/50 focus:bg-white transition-colors" />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-[var(--color-neutral-700)]">Password</Label>
-                    <Input id="password" name="password" type="password" required minLength={8} className="bg-white/50 focus:bg-white transition-colors" />
+                    <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} className="bg-white/50 focus:bg-white transition-colors" />
                   </div>
 
                   <input type="hidden" name="role" value={selectedRole} />
@@ -230,7 +227,7 @@ export default function SignupPage() {
                     {selectedRole === "INDIVIDUAL" ? "Start Tracking" : "Sign Up as Coach"}
                   </Button>
 
-                  <p className="text-center text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)] pt-2">
+                  <p className="text-center text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-600)] pt-2">
                     Already have an account? <Link href="/login" className="text-[var(--color-primary-600)] font-semibold hover:underline">Log in</Link>
                   </p>
                 </form>
@@ -238,7 +235,7 @@ export default function SignupPage() {
             )}
           </div>
         </div>
-      </div>
+      </AuthFrame>
     </MarketingLayout>
   )
 }

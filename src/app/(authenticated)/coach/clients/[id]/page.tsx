@@ -214,19 +214,19 @@ export default async function ClientDetailPage({
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Goal</p>
+                        <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Goal</p>
                         <p className="font-medium mt-1">{profile.goal ? GOALS[profile.goal] || profile.goal : "Not set"}</p>
                       </div>
                       <div>
-                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Current Weight</p>
+                        <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Current Weight</p>
                         <p className="font-medium mt-1">{(mostRecentWeight?.weightValue ?? profile.currentWeight) ? `${mostRecentWeight?.weightValue ?? profile.currentWeight} ${profile.preferredWeightUnit}` : "Not set"}</p>
                       </div>
                       <div>
-                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Target Weight</p>
+                        <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Target Weight</p>
                         <p className="font-medium mt-1">{profile.targetWeight ? `${profile.targetWeight} ${profile.preferredWeightUnit}` : "Not set"}</p>
                       </div>
                       <div>
-                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Height</p>
+                        <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Height</p>
                         <p className="font-medium mt-1">{profile.height ? `${profile.height} cm` : "Not set"}</p>
                       </div>
                     </div>
@@ -284,13 +284,13 @@ export default async function ClientDetailPage({
                 {signals ? (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Last Active</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Last Active</p>
                       <p className="font-medium mt-1 text-[var(--color-neutral-900)]">
                         {signals.lastActivityAt ? new Date(signals.lastActivityAt).toLocaleDateString() : "No activity"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Food Logging (7d)</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Food Logging (7d)</p>
                       <p className="font-medium mt-1">
                         <Link href="#nutrition" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                           {signals.foodLoggingDays7d} / 7 days
@@ -303,7 +303,7 @@ export default async function ClientDetailPage({
                       </p>
                     </div>
                     <div>
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Workouts (7d)</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Workouts (7d)</p>
                       <p className="font-medium mt-1">
                         <Link href="#plans" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                           {signals.workoutCount7d} logs
@@ -311,7 +311,7 @@ export default async function ClientDetailPage({
                       </p>
                     </div>
                     <div>
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Yoga (7d)</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Yoga (7d)</p>
                       <p className="font-medium mt-1">
                         <Link href="#plans" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                           {signals.yogaCount7d} logs
@@ -319,7 +319,7 @@ export default async function ClientDetailPage({
                       </p>
                     </div>
                     <div>
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Check-ins (7d)</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Check-ins (7d)</p>
                       <p className="font-medium mt-1">
                         <Link href="#checkins" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                           {signals.checkInDays7d} / 7 days
@@ -327,7 +327,7 @@ export default async function ClientDetailPage({
                       </p>
                     </div>
                     <div>
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Weight Change (30d)</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Weight Change (30d)</p>
                       <p className="font-medium mt-1">
                         <Link href="#progress" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                           {!signals.hasWeightIn30d ? "No logs" : 
@@ -338,7 +338,7 @@ export default async function ClientDetailPage({
                     </div>
                     {signals.lowestHabit7d && (
                       <div className="col-span-2">
-                        <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Lowest Habit (7d)</p>
+                        <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Lowest Habit (7d)</p>
                         <p className="font-medium mt-1">
                           <Link href="#habits" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                             {signals.lowestHabit7d.name}: {signals.lowestHabit7d.completed}/{signals.lowestHabit7d.total} days
@@ -347,7 +347,7 @@ export default async function ClientDetailPage({
                       </div>
                     )}
                     <div className="col-span-2">
-                      <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Latest Progress Photo</p>
+                      <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] uppercase tracking-wider font-semibold">Latest Progress Photo</p>
                       <p className="font-medium mt-1">
                         <Link href="#progress" className="text-[var(--color-primary-700)] hover:underline font-semibold">
                           {signals.lastProgressPhotoAt ? new Date(signals.lastProgressPhotoAt).toLocaleDateString() : "No photos"}
@@ -357,7 +357,7 @@ export default async function ClientDetailPage({
                   </div>
                 ) : (
                   <div className="text-center p-6 bg-[var(--color-neutral-50)] rounded border border-dashed border-[var(--color-neutral-300)]">
-                    <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No activity signals available.</p>
+                    <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No activity signals available.</p>
                   </div>
                 )}
               </CardContent>

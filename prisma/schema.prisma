@@ -230,9 +230,14 @@ model FoodItem {
   proteinGrams Int  @default(0)
   carbGrams    Int  @default(0)
   fatGrams     Int  @default(0)
-  fiberGrams   Int  @default(0)
+  fiberGrams   Int?
   sugarGrams   Int?
   sodiumMg     Int?
+  nutritionSource String?
+  sourceFoodId    String?
+  sourceUrl       String?
+  portionAmount   Float?
+  portionUnit     String?
 
   @@index([mealLogId])
 }

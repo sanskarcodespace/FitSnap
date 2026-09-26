@@ -28,7 +28,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         {...props}
       >
         {title && <h5 className="mb-1 font-medium leading-none tracking-tight">{title}</h5>}
-        <div className="text-[var(--text-body-sm-size)] [&_p]:leading-relaxed">
+        <div className="text-[length:var(--text-body-sm-size)] [&_p]:leading-relaxed">
           {children}
         </div>
       </div>

@@ -79,7 +79,7 @@ export function DailyFoodLogView({
       {/* Today's Nutrition / Totals */}
       {summary.hasTarget ? (
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)]">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Nutrition</h2>
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Nutrition</h2>
           
           <div className="flex flex-col md:flex-row gap-8 items-center md:items-stretch">
             {/* Calories Ring */}
@@ -219,7 +219,7 @@ export function DailyFoodLogView({
       ) : (
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)]">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
-            <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">Totals</h2>
+            <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)]">Totals</h2>
             {readOnly ? (
               <span className="text-sm text-[var(--color-neutral-500)] italic flex gap-1 items-center">
                 No nutrition targets set for this client yet. 
@@ -255,9 +255,10 @@ export function DailyFoodLogView({
         </section>
       )}
 
+      <p className="nutrition-note">Totals include known values only. Missing fiber, sugar, or sodium are unknown, not zero. Food records and portion measurements can vary.</p>
       {/* Meals */}
       <section className="space-y-4">
-        <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">Meals</h2>
+        <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)]">Meals</h2>
         
         {mealsByType.length === 0 && readOnly && (
           <p className="text-sm text-[var(--color-neutral-500)] italic">No meals logged for this day.</p>
@@ -268,7 +269,7 @@ export function DailyFoodLogView({
             return (
               <div key={group.type} className="bg-white rounded-xl p-4 shadow-sm border border-[var(--color-neutral-200)] flex justify-between items-center">
                 <h3 className="font-semibold text-[var(--color-neutral-700)]">{group.type}</h3>
-                <span className="text-sm text-[var(--color-neutral-400)]">Empty</span>
+                <span className="text-sm text-[var(--color-neutral-400)]">Not logged yet</span>
               </div>
             )
           }
@@ -433,7 +434,10 @@ export function DailyFoodLogView({
                                       <div key={item.id} className="px-4 py-2.5 ml-9 flex justify-between items-start border-b border-[var(--color-neutral-100)] last:border-b-0">
                                         <div>
                                           <p className="text-sm text-[var(--color-neutral-700)]">{item.name}</p>
-                                          {item.portionDescription && (
+                                          <p className="text-[10px] text-[var(--color-neutral-500)] mt-1">
+                                    {(item.nutritionSource === "openfoodfacts" || item.nutritionSource === "usda") && item.sourceFoodId ? <a className="underline" target="_blank" rel="noreferrer" href={item.nutritionSource === "usda" ? `https://fdc.nal.usda.gov/food-details/${encodeURIComponent(item.sourceFoodId)}/nutrients` : `https://world.openfoodfacts.org/product/${encodeURIComponent(item.sourceFoodId)}`}>{item.nutritionSource === "usda" ? "USDA FoodData Central" : "Open Food Facts"} · source record</a> : "User entered / previous estimate"}
+                                  </p>
+                                  {item.portionDescription && (
                                             <p className="text-[11px] text-[var(--color-neutral-400)] mt-0.5">{item.portionDescription}</p>
                                           )}
                                         </div>
@@ -463,6 +467,9 @@ export function DailyFoodLogView({
                                       </Tooltip>
                                     )}
                                   </div>
+                                  <p className="text-[10px] text-[var(--color-neutral-500)] mt-1">
+                                    {(item.nutritionSource === "openfoodfacts" || item.nutritionSource === "usda") && item.sourceFoodId ? <a className="underline" target="_blank" rel="noreferrer" href={item.nutritionSource === "usda" ? `https://fdc.nal.usda.gov/food-details/${encodeURIComponent(item.sourceFoodId)}/nutrients` : `https://world.openfoodfacts.org/product/${encodeURIComponent(item.sourceFoodId)}`}>{item.nutritionSource === "usda" ? "USDA FoodData Central" : "Open Food Facts"} · source record</a> : "User entered / previous estimate"}
+                                  </p>
                                   {item.portionDescription && (
                                     <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">{item.portionDescription}</p>
                                   )}
@@ -497,7 +504,7 @@ export function DailyFoodLogView({
       <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)]">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">Water</h2>
+            <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)]">Water</h2>
             <p className="text-sm text-[var(--color-neutral-500)] mt-1">
               Total today: <span className="font-bold text-[var(--color-primary-700)]">{summary.consumedTotals.waterMl} ml</span>
             </p>

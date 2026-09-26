@@ -1,57 +1,20 @@
 "use client"
-
-import * as React from "react"
-import { getUnreadCount } from "@/app/(authenticated)/messages/actions"
-import { Toast } from "@/components/ui/toast"
-
+import { useEffect, useRef, useState } from "react"
+import { useUnreadCount } from "./unread-messages-provider"
+import { Toast } from "./toast"
 export function MessageAlerts() {
-  const [lastCount, setLastCount] = React.useState<number | null>(null)
-  const [showToast, setShowToast] = React.useState(false)
-
-  React.useEffect(() => {
-    let mounted = true
-
-    async function checkCount() {
-      try {
-        const unreadCount = await getUnreadCount()
-        
-        if (mounted) {
-          if (lastCount !== null && unreadCount > lastCount) {
-            // New message arrived
-            setShowToast(true)
-            setTimeout(() => {
-              if (mounted) setShowToast(false)
-            }, 5000)
-          }
-          setLastCount(unreadCount)
-        }
-      } catch (e) {
-        // Ignore
-      }
-    }
-
-    // Initial check doesn't trigger toast because lastCount is null
-    checkCount()
-    
-    // Poll every 15s, same as badge
-    const interval = setInterval(checkCount, 15000) 
-
-    return () => {
-      mounted = false
-      clearInterval(interval)
-    }
-  }, [lastCount])
-
-  if (!showToast) return null
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 w-80">
-      <Toast 
-        title="New Message" 
-        description="You have received a new message."
-        variant="default"
-        onClose={() => setShowToast(false)}
-      />
-    </div>
-  )
+  const count = useUnreadCount();
+  const previous = useRef<number | null>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (count === null) return;
+    const increased = previous.current !== null && count > previous.current;
+    previous.current = count;
+    if (!increased) return;
+    const show = setTimeout(() => setVisible(true), 0);
+    const hide = setTimeout(() => setVisible(false), 5000);
+    return () => { clearTimeout(show); clearTimeout(hide); };
+  }, [count]);
+  if (!visible) return null;
+  return <div className="fixed bottom-24 md:bottom-5 right-4 z-50 w-80 max-w-[calc(100vw-32px)]"><Toast title="New message" description="You have received a new message." variant="default" onClose={() => setVisible(false)}/></div>;
 }

@@ -1,243 +1,50 @@
-"use client";
-
-import { MarketingLayout } from "@/components/layout/marketing-layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { CheckCircle2, ArrowRight, Smartphone, LineChart, BrainCircuit, Sparkles, ChevronRight } from "lucide-react"
-import { motion } from "framer-motion"
+import { ArrowUpRight, Camera, Check, MoveUpRight, Leaf, ScanLine, TrendingUp, Users, ArrowRight } from "lucide-react"
+import { MarketingLayout } from "@/components/layout/marketing-layout"
 
 export default function HomePage() {
-  return (
-    <MarketingLayout>
-      {/* Hero Section */}
-      <section className="relative px-4 py-32 md:py-48 overflow-hidden flex flex-col items-center justify-center min-h-[90vh]">
-        {/* Abstract Glowing Orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[var(--color-primary-500)] opacity-20 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[var(--color-accent)] opacity-10 blur-[150px] rounded-full mix-blend-screen pointer-events-none" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 pointer-events-none" />
-
-        <div className="container relative z-10 mx-auto max-w-5xl text-center space-y-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex justify-center"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-lg">
-              <Sparkles className="w-4 h-4 text-[var(--color-primary-400)]" />
-              <span className="text-sm font-medium text-white/80">Transform Your Coaching Business</span>
-            </div>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-[1.1]"
-          >
-            Stop guessing. <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary-400)] via-[var(--color-primary-200)] to-[var(--color-accent)]">
-              Start coaching.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-lg md:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed font-light"
-          >
-            The world's first AI-assisted food tracking platform built specifically for premium online fitness coaches.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
-          >
-            <Link href="/signup">
-              <Button size="lg" className="w-full sm:w-auto h-14 px-8 text-lg rounded-full bg-white text-black hover:bg-white/90 font-semibold shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.25)] transition-all duration-300">
-                Start for free
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 text-lg rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10 backdrop-blur-md transition-all duration-300">
-                Book a Demo
-              </Button>
-            </Link>
-          </motion.div>
+  return <MarketingLayout>
+    <section className="home-hero">
+      <div className="hero-copy">
+        <p className="eyebrow"><span className="tiny-dot"/> A little better, every day</p>
+        <h1>Good habits.<br />Real food.<br /><em>A better you.</em></h1>
+        <p className="hero-description">Your food, movement, and progress. Finally in one thoughtful space. Build a routine that feels as good as it looks.</p>
+        <div className="hero-links"><Link href="/signup" className="hero-primary">Find your rhythm <ArrowUpRight size={19}/></Link><Link href="/how-it-works" className="hero-secondary">Take a look <ArrowRight size={16}/></Link></div>
+        <div className="hero-caption"><span><Check size={14}/> For individuals</span><span><Check size={14}/> Built for coaches, too</span></div>
+      </div>
+      <div className="hero-visual" aria-label="Illustration of a balanced meal and the FitSnap food review flow">
+        <div className="visual-topline"><span>THE EVERYDAY EDIT</span><Leaf size={20}/></div>
+        <div className="meal-art">
+          <svg viewBox="0 0 440 440" role="img" aria-label="Illustrated plate with vegetables, grains and salmon">
+            <defs>
+              <radialGradient id="plate"><stop stopColor="#fffef6"/><stop offset=".8" stopColor="#f5f3e6"/><stop offset="1" stopColor="#e3e1d0"/></radialGradient>
+              <linearGradient id="salmon" x2="1" y2="1"><stop stopColor="#edb078"/><stop offset="1" stopColor="#d4784c"/></linearGradient>
+              <filter id="plate-shadow"><feDropShadow dx="0" dy="10" stdDeviation="13" floodColor="#273517" floodOpacity=".2"/></filter>
+            </defs>
+            <circle cx="220" cy="220" r="180" fill="url(#plate)" filter="url(#plate-shadow)"/>
+            <circle cx="220" cy="220" r="149" fill="none" stroke="#e2e1d3" strokeWidth="2"/>
+            {Array.from({length: 38}, (_, i) => { const a=i*2.4;const r=18+Math.sqrt(i)*10;return <ellipse key={i} cx={150+Math.cos(a)*r} cy={178+Math.sin(a)*r} rx="13" ry="5" transform={`rotate(${i*31} ${150+Math.cos(a)*r} ${178+Math.sin(a)*r})`} fill={i%3===0?"#d4c69b":"#e9dbb4"} stroke="#c2b184" strokeWidth=".7"/>})}
+            <g transform="rotate(-25 268 210)"><rect x="207" y="139" width="115" height="139" rx="33" fill="url(#salmon)"/>{[165,190,215,240].map(y=><path key={y} d={`M219 ${y}q42 22 91 0`} stroke="#ffe0b0" strokeWidth="5" fill="none"/>)}<path d="m218 258 85 0" stroke="#91492e" strokeWidth="5"/></g>
+            {[0,1,2,3,4,5,6].map(i=><g key={i} transform={`translate(${133+i*21} ${286+Math.sin(i)*17}) rotate(${i*29})`}><ellipse rx="16" ry="28" fill={i%2?"#486d36":"#65854b"}/><path d="M0-20V23" stroke="#92aa67" strokeWidth="2"/></g>)}
+            <g fill="#d8784b" stroke="#efaa77" strokeWidth="3"><circle cx="133" cy="250" r="17"/><circle cx="169" cy="276" r="15"/><circle cx="294" cy="301" r="16"/></g>
+            <path d="M286 116a37 37 0 0 1 47 38l-47-38" fill="#e8ce70" stroke="#faf0b0" strokeWidth="5"/>
+          </svg>
         </div>
-      </section>
-
-      {/* The Problem Section */}
-      <section className="relative px-4 py-32 border-t border-white/5 bg-black">
-        <div className="container mx-auto max-w-6xl space-y-20">
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8 }}
-            className="text-center space-y-6 max-w-3xl mx-auto"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">The old way is broken</h2>
-            <p className="text-xl text-white/50 font-light">
-              You are spending hours jumping between WhatsApp, spreadsheets, and disconnected apps just to figure out if your clients are sticking to their plan.
-            </p>
-          </motion.div>
-          
-          <div className="grid md:grid-cols-3 gap-6 relative z-10">
-            {[
-              { title: "WhatsApp Chaos", desc: "Endless scrolling to find last week's check-in photos or meal updates." },
-              { title: "Manual Nutrition Math", desc: "Clients struggling to enter precise grams, leading to poor adherence." },
-              { title: "Spreadsheet Fatigue", desc: "Constantly updating brittle formulas and manually tracking progress." }
-            ].map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, delay: i * 0.2 }}
-              >
-                <Card className="h-full bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors duration-500 group rounded-3xl overflow-hidden">
-                  <CardContent className="p-8 space-y-6">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                      <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
-                    </div>
-                    <div className="space-y-3">
-                      <h3 className="text-white font-semibold text-2xl">{feature.title}</h3>
-                      <p className="text-white/50 leading-relaxed font-light">{feature.desc}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* AI Workflow Preview */}
-      <section className="relative px-4 py-32 overflow-hidden bg-gradient-to-b from-black to-[var(--color-primary-950)]">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
-        
-        <div className="container relative z-10 mx-auto max-w-6xl space-y-24">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center space-y-6 max-w-3xl mx-auto"
-          >
-            <h2 className="text-5xl font-bold tracking-tight text-white">The FitSnap Way</h2>
-            <p className="text-xl text-white/60 font-light">
-              Our unique AI-assisted workflow makes nutrition logging effortless for your clients and gives you instant visibility.
-            </p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 relative">
-            <div className="hidden md:block absolute top-12 left-24 right-24 h-[1px] bg-gradient-to-r from-transparent via-[var(--color-primary-500)] to-transparent opacity-30" />
-            
-            {[
-              { icon: Smartphone, title: "1. Snap", desc: "Client takes a photo of their meal." },
-              { icon: BrainCircuit, title: "2. Analyze", desc: "AI estimates macros instantly." },
-              { icon: CheckCircle2, title: "3. Confirm", desc: "Client reviews and saves." },
-              { icon: LineChart, title: "4. Dashboard", desc: "You see totals in real-time." }
-            ].map((step, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
-                className="space-y-6 text-center group relative"
-              >
-                <div className="relative w-24 h-24 mx-auto">
-                  <div className="absolute inset-0 bg-[var(--color-primary-500)] blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-                  <div className="relative w-full h-full rounded-2xl bg-black border border-white/20 flex items-center justify-center shadow-2xl group-hover:border-[var(--color-primary-500)] transition-colors duration-500">
-                    <step.icon className="w-10 h-10 text-white/50 group-hover:text-[var(--color-primary-400)] transition-colors duration-500" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-2xl text-white">{step.title}</h3>
-                  <p className="text-white/50 leading-relaxed font-light">{step.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Summary */}
-      <section className="px-4 py-32 bg-black border-t border-white/5">
-        <div className="container mx-auto max-w-5xl">
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center space-y-6 mb-20"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Everything you need to scale</h2>
-            <p className="text-xl text-white/50 font-light max-w-2xl mx-auto">
-              A complete, high-performance toolkit built specifically for elite online fitness coaches.
-            </p>
-          </motion.div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              { title: "Workout & Meal Planning", desc: "Assign templates and dynamic plans with absolute ease." },
-              { title: "Smart Coach Alerts", desc: "Get instantly notified when clients fall off plan." },
-              { title: "Client Progress Tracking", desc: "All metrics, photos, and compliance in one beautiful dashboard." },
-              { title: "Shareable Reports", desc: "Export stunning summaries to share directly on WhatsApp." }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="group p-8 rounded-3xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all duration-500 flex gap-6 items-start"
-              >
-                <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--color-primary-900)] transition-all duration-500">
-                  <CheckCircle2 className="w-7 h-7 text-[var(--color-primary-400)]" />
-                </div>
-                <div className="space-y-2 pt-1">
-                  <h3 className="font-semibold text-xl text-white">{feature.title}</h3>
-                  <p className="text-white/50 leading-relaxed font-light">{feature.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="relative px-4 py-40 text-center overflow-hidden border-t border-white/5">
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-primary-950)] to-black -z-10" />
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="container mx-auto max-w-4xl space-y-10 relative z-10"
-        >
-          <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-tight">
-            Ready to modernize?
-          </h2>
-          <p className="text-xl md:text-2xl text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
-            Join FitSnap today and deliver a premium, unforgettable experience to your clients.
-          </p>
-          <div className="pt-8">
-            <Link href="/signup">
-              <Button size="lg" className="h-16 px-12 text-xl rounded-full bg-white text-black hover:bg-white/90 font-semibold shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] hover:-translate-y-1 transition-all duration-300">
-                Get Started Now
-                <ChevronRight className="ml-2 w-6 h-6" />
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-      </section>
-    </MarketingLayout>
-  )
+        <div className="scan-corner tl"/><div className="scan-corner br"/>
+        <div className="meal-caption"><span>LUNCH, WITH A LITTLE INTENTION</span><h2>Your plate.<br />A clearer picture.</h2></div>
+        <div className="floating-review"><span className="review-icon"><ScanLine size={22}/></span><div><strong>Snap. Match. Confirm.</strong><p>Nutrition with a source.</p></div><Check size={18}/></div>
+        <span className="visual-footnote">Illustration · confirm food and weight before logging</span>
+      </div>
+    </section>
+    <div className="home-strip"><span>A more considered way to feel well</span><span>Food journal</span><span>Daily habits</span><span>Meaningful progress</span><span>Connected coaching</span></div>
+    <section className="home-features">
+      <div className="features-heading"><div><p className="eyebrow section-label">LESS FRICTION. MORE LIVING.</p><h2>A whole picture.<br />A simpler everyday.</h2></div><p>Wellbeing isn’t one perfect day. It’s the little things you come back to. Keep yours together.</p></div>
+      <div className="feature-grid">
+        <Link href="/how-it-works" className="feature-tile feature-food"><Camera/><span className="feature-index">01 / NOURISH</span><h3>Know your plate.</h3><p>Start with a photo. Choose a food record, confirm the portion, and keep the source in view.</p><span className="tile-arrow"><MoveUpRight/></span></Link>
+        <Link href="/signup" className="feature-tile"><TrendingUp/><span className="feature-index">02 / GROW</span><h3>Notice the small wins.</h3><p>A calmer view of your habits and progress. A little perspective for the days that matter.</p><div className="mini-chart" aria-hidden="true">{[28,48,36,63,56,79,95].map((v,i)=><span key={i} style={{height:v}}/>)}</div><span className="tile-arrow"><MoveUpRight/></span></Link>
+        <Link href="/for-coaches" className="feature-tile feature-coach"><Users/><span className="feature-index">03 / CONNECT</span><h3>Better, together.</h3><p>Plans, check-ins, and conversations in one home for you and your coach.</p><span className="tile-arrow"><MoveUpRight/></span></Link>
+      </div>
+    </section>
+    <section className="home-final"><p className="eyebrow">YOUR NEXT CHAPTER</p><h2>Make yourself<br /><em>a little more space.</em></h2><Link href="/signup" className="hero-primary">Start with today <ArrowUpRight size={19}/></Link></section>
+  </MarketingLayout>
 }

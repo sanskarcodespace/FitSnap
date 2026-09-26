@@ -40,8 +40,8 @@ export default function PricingPage() {
     <MarketingLayout>
       <div className="container mx-auto px-4 py-20 max-w-6xl space-y-16">
         <div className="text-center space-y-4">
-          <h1 className="text-[var(--text-display-size)] font-bold">Simple, transparent pricing</h1>
-          <p className="text-[var(--text-body-lg-size)] text-[var(--color-neutral-600)]">Plans that grow with your coaching business.</p>
+          <h1 className="text-[length:var(--text-display-size)] font-bold">Simple, transparent pricing</h1>
+          <p className="text-[length:var(--text-body-lg-size)] text-[var(--color-neutral-600)]">Plans that grow with your coaching business.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 items-start">

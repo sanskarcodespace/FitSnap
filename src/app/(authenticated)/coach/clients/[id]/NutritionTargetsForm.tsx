@@ -78,27 +78,27 @@ export function NutritionTargetsForm({ connectionId, initialData }: NutritionTar
       <div className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="bg-[var(--color-secondary-50)] p-4 rounded-lg">
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Calories</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Calories</p>
             <p className="text-2xl font-bold text-[var(--color-primary-900)]">{initialData.calorieTarget} <span className="text-sm font-normal text-[var(--color-neutral-500)]">kcal</span></p>
           </div>
           <div className="bg-[var(--color-secondary-50)] p-4 rounded-lg">
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Protein</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Protein</p>
             <p className="text-2xl font-bold text-[var(--color-primary-900)]">{initialData.proteinTargetGrams} <span className="text-sm font-normal text-[var(--color-neutral-500)]">g</span></p>
           </div>
           <div className="bg-[var(--color-secondary-50)] p-4 rounded-lg">
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Carbs</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Carbs</p>
             <p className="text-2xl font-bold text-[var(--color-primary-900)]">{initialData.carbTargetGrams} <span className="text-sm font-normal text-[var(--color-neutral-500)]">g</span></p>
           </div>
           <div className="bg-[var(--color-secondary-50)] p-4 rounded-lg">
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Fat</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Fat</p>
             <p className="text-2xl font-bold text-[var(--color-primary-900)]">{initialData.fatTargetGrams} <span className="text-sm font-normal text-[var(--color-neutral-500)]">g</span></p>
           </div>
           <div className="bg-[var(--color-secondary-50)] p-4 rounded-lg">
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Water</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Water</p>
             <p className="text-2xl font-bold text-[var(--color-primary-900)]">{initialData.waterTargetLiters} <span className="text-sm font-normal text-[var(--color-neutral-500)]">L</span></p>
           </div>
           <div className="bg-[var(--color-secondary-50)] p-4 rounded-lg">
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Fiber</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-600)] font-medium uppercase tracking-wider">Fiber</p>
             <p className="text-2xl font-bold text-[var(--color-primary-900)]">{initialData.fiberTargetGrams ? initialData.fiberTargetGrams : "—"} <span className="text-sm font-normal text-[var(--color-neutral-500)]">{initialData.fiberTargetGrams ? "g" : ""}</span></p>
           </div>
         </div>
