@@ -88,7 +88,7 @@ export default function CoachOnboardingPage() {
     <div className="min-h-screen bg-[var(--color-secondary-50)] py-12 px-4 flex justify-center">
       <div className="w-full max-w-2xl bg-[var(--background)] rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] p-8">
         <div className="space-y-4 mb-8">
-          <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">Complete Your Profile</h1>
+          <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">Complete Your Profile</h1>
           <p className="text-[var(--color-neutral-600)]">Tell us a bit about your coaching practice before we dive in. You can always edit this later.</p>
         </div>
 
@@ -124,7 +124,7 @@ export default function CoachOnboardingPage() {
                   <Upload className="w-4 h-4 mr-2" />
                   Choose Image
                 </Button>
-                <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] mt-2">Max 5MB (JPG, PNG)</p>
+                <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] mt-2">Max 5MB (JPG, PNG)</p>
               </div>
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function CoachOnboardingPage() {
 
           <div className="space-y-3">
             <Label>Coaching Specialties *</Label>
-            <p className="text-[var(--text-caption-size)] text-[var(--color-neutral-500)] -mt-2 mb-2">Select at least one specialty.</p>
+            <p className="text-[length:var(--text-caption-size)] text-[var(--color-neutral-500)] -mt-2 mb-2">Select at least one specialty.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {SPECIALTIES_LIST.map((spec) => (
                 <label key={spec.id} htmlFor={spec.id} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)] transition-colors">
@@ -147,7 +147,7 @@ export default function CoachOnboardingPage() {
                     checked={selectedSpecialties.includes(spec.id)}
                     onChange={(e) => handleSpecialtyChange(spec.id, e.target.checked)}
                   />
-                  <span className="text-[var(--text-body-sm-size)] font-medium text-[var(--color-neutral-700)]">{spec.label}</span>
+                  <span className="text-[length:var(--text-body-sm-size)] font-medium text-[var(--color-neutral-700)]">{spec.label}</span>
                 </label>
               ))}
             </div>

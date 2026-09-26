@@ -97,7 +97,7 @@ export function WeightTab() {
       {/* Headline */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-[var(--text-h3-size)] font-bold text-[var(--color-neutral-900)]">
+          <h2 className="text-[length:var(--text-h3-size)] font-bold text-[var(--color-neutral-900)]">
             Current Weight: {summary?.mostRecentWeight} {summary?.preferredWeightUnit}
           </h2>
           {summary?.hasWeightGoal && summary?.targetWeight && (

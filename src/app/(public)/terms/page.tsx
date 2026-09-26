@@ -35,7 +35,7 @@ export default function TermsPage() {
   return (
     <MarketingLayout>
       <div className="container mx-auto px-4 py-20 max-w-3xl space-y-8">
-        <h1 className="text-[var(--text-display-size)] font-bold">Terms of Service</h1>
+        <h1 className="text-[length:var(--text-display-size)] font-bold">Terms of Service</h1>
         
         <div className="p-6 bg-[var(--color-warning-bg)] border border-[var(--color-warning-text)] text-[var(--color-warning-text)] rounded-[var(--radius-lg)]">
           <strong>Placeholder Notice:</strong> The final legal text for these Terms of Service is currently pending legal review and does not yet constitute the company's binding policy. 

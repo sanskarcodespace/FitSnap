@@ -32,7 +32,7 @@ export function DietPlanView({ plan }: { plan: DietPlanWithDetails }) {
           )}
         </div>
         {plan.overview && (
-          <p className="text-[var(--text-body-size)] text-[var(--color-neutral-700)] whitespace-pre-wrap mt-2">
+          <p className="text-[length:var(--text-body-size)] text-[var(--color-neutral-700)] whitespace-pre-wrap mt-2">
             {plan.overview}
           </p>
         )}
@@ -55,7 +55,7 @@ export function DietPlanView({ plan }: { plan: DietPlanWithDetails }) {
                   )}
                 </CardHeader>
                 <CardContent>
-                  <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-700)] whitespace-pre-wrap">
+                  <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-700)] whitespace-pre-wrap">
                     {meal.guidanceText}
                   </p>
                 </CardContent>
@@ -70,7 +70,7 @@ export function DietPlanView({ plan }: { plan: DietPlanWithDetails }) {
           <h3 className="text-lg font-bold text-[var(--color-neutral-900)]">Guidelines</h3>
           <Card className="border border-[var(--color-neutral-200)] shadow-sm">
             <CardContent className="pt-6">
-              <ul className="space-y-3 list-disc list-outside ml-5 text-[var(--text-body-size)] text-[var(--color-neutral-700)]">
+              <ul className="space-y-3 list-disc list-outside ml-5 text-[length:var(--text-body-size)] text-[var(--color-neutral-700)]">
                 {plan.guidelines.map((guideline) => (
                   <li key={guideline.id} className="pl-1 leading-relaxed">
                     {guideline.text}

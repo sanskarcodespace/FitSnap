@@ -36,13 +36,13 @@ export default function StyleGuidePage() {
   return (
     <div className="container mx-auto p-8 space-y-16 pb-24">
       <div>
-        <h1 className="text-[var(--text-display-size)] font-bold mb-4">Design System & Component Library</h1>
-        <p className="text-[var(--text-body-lg-size)] text-[var(--color-neutral-500)]">Internal style guide for FitSnap tokens and components.</p>
+        <h1 className="text-[length:var(--text-display-size)] font-bold mb-4">Design System & Component Library</h1>
+        <p className="text-[length:var(--text-body-lg-size)] text-[var(--color-neutral-500)]">Internal style guide for FitSnap tokens and components.</p>
       </div>
 
       {/* Colors */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Colors</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Colors</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <div className="h-16 rounded-md bg-[var(--color-primary-700)] shadow-sm"></div>
@@ -69,23 +69,23 @@ export default function StyleGuidePage() {
 
       {/* Typography */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Typography</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Typography</h2>
         <div className="space-y-4">
-          <div className="text-[var(--text-display-size)] leading-[var(--text-display-line-height)] font-bold">Display Text</div>
-          <div className="text-[var(--text-h1-size)] leading-[var(--text-h1-line-height)] font-bold">Heading 1</div>
-          <div className="text-[var(--text-h2-size)] leading-[var(--text-h2-line-height)] font-semibold">Heading 2</div>
-          <div className="text-[var(--text-h3-size)] leading-[var(--text-h3-line-height)] font-semibold">Heading 3</div>
-          <div className="text-[var(--text-h4-size)] leading-[var(--text-h4-line-height)] font-medium">Heading 4</div>
-          <div className="text-[var(--text-body-lg-size)] leading-[var(--text-body-lg-line-height)]">Body Large: The quick brown fox jumps over the lazy dog.</div>
-          <div className="text-[var(--text-body-size)] leading-[var(--text-body-line-height)]">Body Regular: The quick brown fox jumps over the lazy dog.</div>
-          <div className="text-[var(--text-body-sm-size)] leading-[var(--text-body-sm-line-height)]">Body Small: The quick brown fox jumps over the lazy dog.</div>
-          <div className="text-[var(--text-caption-size)] leading-[var(--text-caption-line-height)] text-[var(--color-neutral-500)]">Caption: The quick brown fox jumps over the lazy dog.</div>
+          <div className="text-[length:var(--text-display-size)] leading-[var(--text-display-line-height)] font-bold">Display Text</div>
+          <div className="text-[length:var(--text-h1-size)] leading-[var(--text-h1-line-height)] font-bold">Heading 1</div>
+          <div className="text-[length:var(--text-h2-size)] leading-[var(--text-h2-line-height)] font-semibold">Heading 2</div>
+          <div className="text-[length:var(--text-h3-size)] leading-[var(--text-h3-line-height)] font-semibold">Heading 3</div>
+          <div className="text-[length:var(--text-h4-size)] leading-[var(--text-h4-line-height)] font-medium">Heading 4</div>
+          <div className="text-[length:var(--text-body-lg-size)] leading-[var(--text-body-lg-line-height)]">Body Large: The quick brown fox jumps over the lazy dog.</div>
+          <div className="text-[length:var(--text-body-size)] leading-[var(--text-body-line-height)]">Body Regular: The quick brown fox jumps over the lazy dog.</div>
+          <div className="text-[length:var(--text-body-sm-size)] leading-[var(--text-body-sm-line-height)]">Body Small: The quick brown fox jumps over the lazy dog.</div>
+          <div className="text-[length:var(--text-caption-size)] leading-[var(--text-caption-line-height)] text-[var(--color-neutral-500)]">Caption: The quick brown fox jumps over the lazy dog.</div>
         </div>
       </section>
 
       {/* Buttons */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Buttons</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Buttons</h2>
         <div className="flex flex-wrap gap-4 items-end">
           <Button>Primary</Button>
           <Button variant="secondary">Secondary</Button>
@@ -101,7 +101,7 @@ export default function StyleGuidePage() {
 
       {/* Inputs */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Inputs & Forms</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Inputs & Forms</h2>
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
@@ -145,7 +145,7 @@ export default function StyleGuidePage() {
 
       {/* Cards & Badges */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Cards, Badges & Avatars</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Cards, Badges & Avatars</h2>
         <div className="grid md:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
@@ -190,7 +190,7 @@ export default function StyleGuidePage() {
 
       {/* Feedback: Alerts, Toasts, Modals */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Feedback & Overlays</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Feedback & Overlays</h2>
         <div className="space-y-4 max-w-2xl">
           <Alert title="Note">This is a default alert for general information.</Alert>
           <Alert variant="error" title="Payment Failed">There was an issue processing your payment.</Alert>
@@ -227,7 +227,7 @@ export default function StyleGuidePage() {
 
       {/* Navigation & Layout */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Navigation (Tabs)</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Navigation (Tabs)</h2>
         <Tabs defaultValue="tab1">
           <TabsList>
             <TabsTrigger value="tab1">Overview</TabsTrigger>
@@ -248,7 +248,7 @@ export default function StyleGuidePage() {
 
       {/* Trend Chart */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Data Visualization</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Data Visualization</h2>
         <Card>
           <CardHeader>
             <CardTitle>Trend Chart (Calories)</CardTitle>
@@ -277,7 +277,7 @@ export default function StyleGuidePage() {
 
       {/* Progress & States */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Progress & States</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Progress & States</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-neutral-500">Progress Bar (65%)</h3>
@@ -312,7 +312,7 @@ export default function StyleGuidePage() {
 
       {/* Data Table */}
       <section className="space-y-4">
-        <h2 className="text-[var(--text-h2-size)] font-semibold border-b pb-2">Data Table (Responsive)</h2>
+        <h2 className="text-[length:var(--text-h2-size)] font-semibold border-b pb-2">Data Table (Responsive)</h2>
         <div className="text-sm text-neutral-500 mb-2">Resize window to see stacked mobile view vs desktop table view.</div>
         <DataTable
           data={sampleData}

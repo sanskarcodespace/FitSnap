@@ -28,8 +28,8 @@ export function Toast({ title, description, variant = "default", onClose, isVisi
       role="status" aria-live="polite" aria-atomic="true"
     >
       <div className="grid gap-1">
-        {title && <div className="text-[var(--text-body-sm-size)] font-semibold">{title}</div>}
-        {description && <div className="text-[var(--text-caption-size)] opacity-90">{description}</div>}
+        {title && <div className="text-[length:var(--text-body-sm-size)] font-semibold">{title}</div>}
+        {description && <div className="text-[length:var(--text-caption-size)] opacity-90">{description}</div>}
       </div>
       {onClose && (
         <button

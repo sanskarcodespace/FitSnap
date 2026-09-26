@@ -187,12 +187,12 @@ export function ClientsSection({
                 <div className="text-center p-8 bg-[var(--color-neutral-50)] rounded border border-dashed border-[var(--color-neutral-300)]">
                   {searchParams.q || searchParams.goal || searchParams.status ? (
                     <>
-                      <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mb-3">No matching clients found.</p>
+                      <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mb-3">No matching clients found.</p>
                       <Button variant="secondary" size="sm" onClick={handleClearFilters}>Clear Filters</Button>
                     </>
                   ) : (
                     <>
-                      <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mb-3">No active clients yet.</p>
+                      <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mb-3">No active clients yet.</p>
                       <Button variant="secondary" size="sm" onClick={() => setIsInviteOpen(true)}>Invite your first client</Button>
                     </>
                   )}
@@ -222,7 +222,7 @@ export function ClientsSection({
                           </div>
                           <div>
                             <p className="font-bold text-[var(--color-neutral-900)]">{clientName}</p>
-                            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">{conn.client?.email || conn.invitedEmail}</p>
+                            <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)]">{conn.client?.email || conn.invitedEmail}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-2">
                               {isSetupPending ? (
                                 <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">
@@ -287,7 +287,7 @@ export function ClientsSection({
             <CardContent>
               {pending.length === 0 ? (
                 <div className="text-center p-6 bg-[var(--color-neutral-50)] rounded border border-dashed border-[var(--color-neutral-300)]">
-                  <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No pending invitations.</p>
+                  <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No pending invitations.</p>
                 </div>
               ) : (
                 <ul className="space-y-4">
@@ -295,7 +295,7 @@ export function ClientsSection({
                     <li key={conn.id} className="flex flex-col p-3 border rounded-lg gap-3">
                       <div>
                         <p className="font-semibold">{conn.invitedName || conn.invitedEmail}</p>
-                        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] truncate">{conn.invitedEmail}</p>
+                        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] truncate">{conn.invitedEmail}</p>
                         <p suppressHydrationWarning className="text-xs text-[var(--color-neutral-400)] mt-1">
                           Sent {new Date(conn.invitedAt).toLocaleDateString()}
                         </p>

@@ -1,1088 +1,149 @@
 "use client"
-
-import React, { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { Camera, Search, Plus, Trash2, ArrowRight, Check, BookOpen, ScanLine, LoaderCircle, PencilLine, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip } from "@/components/ui/tooltip"
+import { Modal } from "@/components/ui/modal"
+import { searchFoodLibrary, uploadTempFoodPhoto, analyzeFoodPhoto, type SaveMealInput } from "@/app/(authenticated)/client/food/actions"
+import { scaleNutrients, type CatalogFood, type FoodProvider, type Nutrients } from "@/lib/food/catalog-types"
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+type Item = SaveMealInput["foodItems"][number];
+type StoredItem = Item & { id?: string; nutritionSource?: string | null; sourceFoodId?: string | null; portionAmount?: number | null; portionUnit?: string | null };
+type Props = {
+  isOpen: boolean; onClose: () => void; isPending: boolean;
+  onSave: (mealType: string, items: Item[], photoReference?: string | null, source?: string) => void;
+  initialData?: { id?: string; mealType: string; photoReference?: string | null; source?: string; foodItems: StoredItem[] } | null;
+};
+const metricLabels: Record<keyof Nutrients, string> = { calories: "Calories (kcal)", proteinGrams: "Protein (g)", carbGrams: "Carbs (g)", fatGrams: "Fat (g)", fiberGrams: "Fiber (g)", sugarGrams: "Sugar (g)", sodiumMg: "Sodium (mg)" };
+const emptyManual = () => ({ name: "", portionDescription: "", calories: "", proteinGrams: "", carbGrams: "", fatGrams: "", fiberGrams: "", sugarGrams: "", sodiumMg: "" });
 
-type FoodItemInput = {
-  id: string; // temp id for UI
-  name: string;
-  portionDescription: string;
-  calories: number;
-  proteinGrams: number;
-  carbGrams: number;
-  fatGrams: number;
-  fiberGrams: number;
-  sugarGrams?: number | null;
-  sodiumMg?: number | null;
-  originType?: string; // "manual" | "ai_detected" | "user_corrected"
-  originalOriginType?: string; // tracks original source if being edited
-  groupName?: string | null; // dish grouping name (e.g. "Burger")
+/** Unmounting the form discards drafts and stale lookup results between meals. */
+export function AddMealDialog(props: Props) {
+  if (!props.isOpen) return null;
+  return <MealComposer key={props.initialData?.id || "new"} {...props} />;
 }
+function MealComposer({ onClose, onSave, isPending, initialData }: Props) {
+  const [mode, setMode] = useState<"search" | "photo" | "manual">("search");
+  const [mealType, setMealType] = useState(initialData?.mealType || "Breakfast");
+  const [items, setItems] = useState<Item[]>(() => (initialData?.foodItems || []).map(item => ({
+    ...item,
+    catalogRef: (item.nutritionSource === "openfoodfacts" || item.nutritionSource === "usda") &&
+      item.sourceFoodId && item.portionAmount && (item.portionUnit === "g" || item.portionUnit === "ml")
+      ? { provider: item.nutritionSource, id: item.sourceFoodId, amount: item.portionAmount, unit: item.portionUnit } : undefined,
+  })));
+  const [photo, setPhoto] = useState(initialData?.photoReference || null);
+  const [query, setQuery] = useState("");
+  const [provider, setProvider] = useState<FoodProvider>("openfoodfacts");
+  const [results, setResults] = useState<CatalogFood[]>([]);
+  const [searched, setSearched] = useState(false);
+  const [chosen, setChosen] = useState<CatalogFood | null>(null);
+  const [amount, setAmount] = useState("");
+  const [unit, setUnit] = useState<"g" | "ml">("g");
+  const [confirmed, setConfirmed] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [suggestions, setSuggestions] = useState<{ name: string; quantity: number; unit: string }[]>([]);
+  const [manual, setManual] = useState(emptyManual);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const working = busy || isPending;
+  const preview = (() => { try { return chosen ? scaleNutrients(chosen, Number(amount), unit) : null; } catch { return null; } })();
 
-type MealLogInput = {
-  id?: string;
-  mealType: string;
-  photoReference?: string | null;
-  source?: string;
-  foodItems: FoodItemInput[];
-}
-
-/** Raw detected food from AI image analysis (no nutrition yet) */
-type ReviewFoodItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  isEstimated: boolean;
-  dishName?: string | null; // dish grouping name from AI
-}
-
-/** Calculated nutrition per food item */
-type CalculatedItem = {
-  name: string;
-  quantity: number;
-  unit: string;
-  portionDescription: string;
-  calories: number;
-  proteinGrams: number;
-  carbGrams: number;
-  fatGrams: number;
-  fiberGrams: number;
-  sugarGrams: number;
-  sodiumMg: number;
-  dishName?: string | null; // dish grouping name
-}
-
-type AddMealDialogProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (mealType: string, items: Omit<FoodItemInput, "id">[], photoReference?: string | null, source?: string) => void;
-  isPending: boolean;
-  initialData?: MealLogInput | null;
-}
-
-const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"]
-const UNIT_OPTIONS = ["g", "kg", "ml", "piece", "pieces", "bowl", "cup", "serving"]
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export function AddMealDialog({ isOpen, onClose, onSave, isPending, initialData }: AddMealDialogProps) {
-  // Entry mode: select → photo → review → results → manual
-  const [entryMode, setEntryMode] = useState<"select" | "photo" | "review" | "results" | "manual">("select")
-  const [mealType, setMealType] = useState("Breakfast")
-  const [items, setItems] = useState<FoodItemInput[]>([])
-  
-  // Photo & AI State
-  const [photoReference, setPhotoReference] = useState<string | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisError, setAnalysisError] = useState<string | null>(null)
-  const [analysisEmpty, setAnalysisEmpty] = useState(false)
-  const [isAiAssisted, setIsAiAssisted] = useState(false)
-  const [isCalculatingText, setIsCalculatingText] = useState(false)
-  
-  // Review state (for the new AI review flow)
-  const [reviewItems, setReviewItems] = useState<ReviewFoodItem[]>([])
-  const [isAddingFood, setIsAddingFood] = useState(false)
-  const [newFoodName, setNewFoodName] = useState("")
-  const [newFoodQuantity, setNewFoodQuantity] = useState("")
-  const [newFoodUnit, setNewFoodUnit] = useState("g")
-
-  // Results state
-  const [calculatedItems, setCalculatedItems] = useState<CalculatedItem[]>([])
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [calcError, setCalcError] = useState<string | null>(null)
-
-  // Current item being edited (manual mode)
-  const [currentItem, setCurrentItem] = useState<FoodItemInput>({
-    id: "",
-    name: "",
-    portionDescription: "",
-    calories: 0,
-    proteinGrams: 0,
-    carbGrams: 0,
-    fatGrams: 0,
-    fiberGrams: 0,
-    originType: "manual"
-  })
-
-  // Initialize from initialData if present
-  React.useEffect(() => {
-    if (isOpen) {
-      setCurrentItem({
-        id: "", name: "", portionDescription: "", calories: 0,
-        proteinGrams: 0, carbGrams: 0, fatGrams: 0, fiberGrams: 0,
-        originType: "manual"
-      })
-
-      if (initialData) {
-        setMealType(initialData.mealType)
-        setItems(initialData.foodItems.map(i => ({...i, id: i.id || Math.random().toString()})))
-        setPhotoReference(initialData.photoReference || null)
-        setPhotoPreview(initialData.photoReference || null)
-        setIsAiAssisted(initialData.source === "ai_assisted")
-        setEntryMode("manual") // skip photo capture if editing
-        setAnalysisError(null)
-        setAnalysisEmpty(false)
-      } else {
-        setMealType("Breakfast")
-        setItems([])
-        setPhotoReference(null)
-        setPhotoPreview(null)
-        setIsAiAssisted(false)
-        setEntryMode("select")
-        setAnalysisError(null)
-        setAnalysisEmpty(false)
-        setReviewItems([])
-        setCalculatedItems([])
-        setCalcError(null)
-        setIsAddingFood(false)
-      }
-    }
-  }, [isOpen, initialData])
-  
-  if (!isOpen) return null
-
-  // ─── Manual mode handlers (unchanged) ──────────────────────────────────────
-
-  const handleAddItem = () => {
-    if (!currentItem.name) return
-    
-    let finalOriginType = currentItem.originType || "manual"
-    if (currentItem.originalOriginType === "ai_detected") {
-      finalOriginType = "user_corrected"
-    }
-
-    setItems([...items, { ...currentItem, id: Math.random().toString(), originType: finalOriginType, originalOriginType: undefined }])
-    
-    setCurrentItem({
-      id: "",
-      name: "",
-      portionDescription: "",
-      calories: 0,
-      proteinGrams: 0,
-      carbGrams: 0,
-      fatGrams: 0,
-      fiberGrams: 0,
-      originType: "manual",
-      originalOriginType: undefined
-    })
-  }
-
-  const handleRemoveItem = (id: string) => {
-    setItems(items.filter(i => i.id !== id))
-  }
-
-  const handleEditItem = (item: FoodItemInput) => {
-    setItems(items.filter(i => i.id !== item.id))
-    setCurrentItem({
-      ...item,
-      originalOriginType: item.originType
-    })
-  }
-
-  const handleAutoCalculate = async () => {
-    if (!currentItem.name) return
-    setIsCalculatingText(true)
+  async function search(term = query) {
+    setError(""); setBusy(true); setChosen(null); setResults([]); setSearched(false);
     try {
-      const { analyzeFoodTextAction } = await import("@/app/(authenticated)/client/food/actions")
-      const res = await analyzeFoodTextAction(currentItem.name, currentItem.portionDescription)
-      
-      if (res.error) {
-        alert(res.error)
-      } else if (res.item) {
-        setCurrentItem({
-          ...currentItem,
-          name: res.item.name || currentItem.name,
-          portionDescription: res.item.portionDescription || currentItem.portionDescription,
-          calories: res.item.calories || 0,
-          proteinGrams: res.item.proteinGrams || 0,
-          carbGrams: res.item.carbGrams || 0,
-          fatGrams: res.item.fatGrams || 0,
-          fiberGrams: res.item.fiberGrams || 0,
-          sugarGrams: res.item.sugarGrams ?? null,
-          sodiumMg: res.item.sodiumMg ?? null,
-          originType: "ai_detected"
-        })
-      }
-    } catch (e) {
-      alert("Failed to calculate macros.")
-    } finally {
-      setIsCalculatingText(false)
-    }
+      const response = await searchFoodLibrary(term, provider);
+      if (!alive.current) return;
+      if (response.error) setError(response.error);
+      else { setResults(response.foods || []); setSearched(true); }
+    } catch { if (alive.current) setError("Could not reach the food library. Please try again."); }
+    finally { if (alive.current) setBusy(false); }
   }
-
-  const handleSave = () => {
-    let finalItems = [...items]
-    if (currentItem.name && currentItem.calories > 0) {
-      let finalOriginType = currentItem.originType || "manual"
-      if (currentItem.originalOriginType === "ai_detected") {
-        finalOriginType = "user_corrected"
-      }
-      finalItems.push({ ...currentItem, id: Math.random().toString(), originType: finalOriginType, originalOriginType: undefined })
-    }
-    
-    if (finalItems.length === 0) return
-    
-    const cleanedItems = finalItems.map(({ id: _id, originalOriginType: _orig, ...rest }) => rest)
-    const source = isAiAssisted ? "ai_assisted" : "manual"
-    onSave(mealType, cleanedItems, photoReference, source)
-  }
-
-  // ─── Photo handlers ────────────────────────────────────────────────────────
-
-  const triggerAnalysis = async (tempUrl: string) => {
-    setIsAnalyzing(true)
-    setAnalysisError(null)
-    setAnalysisEmpty(false)
-
+  async function upload(file?: File) {
+    if (!file) return;
+    setError(""); setBusy(true); setSuggestions([]);
     try {
-      const { analyzeFoodPhoto } = await import("@/app/(authenticated)/client/food/actions")
-      const aiRes = await analyzeFoodPhoto(tempUrl)
-      
-      if (aiRes.error) {
-        setAnalysisError("We couldn't analyze this photo right now — please add the details manually.")
-        setEntryMode("manual")
-      } else if (aiRes.items && aiRes.items.length > 0) {
-        if (aiRes.items.length > 15) {
-          setAnalysisEmpty(true)
-          setEntryMode("manual")
-        } else {
-          // Convert AI response to ReviewFoodItem format
-          const reviewData: ReviewFoodItem[] = aiRes.items.map((item: any) => ({
-            id: Math.random().toString(),
-            name: item.name || "Unknown Food",
-            quantity: item.quantity || 0,
-            unit: item.unit || "g",
-            isEstimated: item.isEstimated !== false,
-            dishName: item.dishName || null,
-          }))
-          setReviewItems(reviewData)
-          setIsAiAssisted(true)
-          setEntryMode("review")
-        }
-      } else {
-        setAnalysisEmpty(true)
-        setEntryMode("manual")
-      }
-    } catch (e) {
-      setAnalysisError("We couldn't analyze this photo right now — please add the details manually.")
-      setEntryMode("manual")
-    } finally {
-      setIsAnalyzing(false)
+      const data = new FormData(); data.set("photo", file);
+      const uploaded = await uploadTempFoodPhoto(data);
+      if (!alive.current) return;
+      if (uploaded.error || !uploaded.tempUrl) { setError(uploaded.error || "Could not upload this photo."); return; }
+      setPhoto(uploaded.tempUrl);
+      const recognized = await analyzeFoodPhoto(uploaded.tempUrl);
+      if (!alive.current) return;
+      if (recognized.error) setError(recognized.error);
+      else if (!recognized.items?.length) setError("No food could be identified confidently. Search by name or enter the label instead.");
+      else setSuggestions(recognized.items);
+    } catch { if (alive.current) setError("The photo could not be processed. You can still search by name."); }
+    finally { if (alive.current) setBusy(false); }
+  }
+  function addChosen() {
+    if (!chosen || !preview || !confirmed) return;
+    if (items.length >= 20) { setError("A meal can contain up to 20 foods."); return; }
+    setItems(prev => [...prev, { name: chosen.name, ...preview, portionDescription: `${amount} ${unit}`,
+      originType: "database", catalogRef: { provider: chosen.provider, id: chosen.id, amount: Number(amount), unit } }]);
+    setChosen(null); setConfirmed(false); setAmount(""); setResults([]); setQuery(""); setSearched(false);
+  }
+  function addManual() {
+    if (!manual.name.trim()) { setError("Enter the food name."); return; }
+    const required = ["calories", "proteinGrams", "carbGrams", "fatGrams"] as const;
+    if (required.some(key => manual[key] === "" || !Number.isInteger(Number(manual[key])) || Number(manual[key]) < 0)) {
+      setError("Enter calories, protein, carbs and fat from the label, using non-negative whole numbers."); return;
     }
-  }
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const localUrl = URL.createObjectURL(file)
-    setPhotoPreview(localUrl)
-    setPhotoReference(null)
-    setAnalysisError(null)
-    setAnalysisEmpty(false)
-
-    // Immediately upload and analyze — no extra button click needed
-    setIsUploading(true)
-    const formData = new FormData()
-    formData.append("photo", file)
-
-    try {
-      const { uploadTempFoodPhoto } = await import("@/app/(authenticated)/client/food/actions")
-      const res = await uploadTempFoodPhoto(formData)
-      if (res.error) {
-        setIsUploading(false)
-        setAnalysisError(res.error)
-        setEntryMode("manual")
-        return
-      }
-      if (res.tempUrl) {
-        setPhotoReference(res.tempUrl)
-        setPhotoPreview(res.tempUrl)
-        setIsUploading(false)
-        // Auto-trigger AI analysis
-        await triggerAnalysis(res.tempUrl)
-      }
-    } catch (err) {
-      setIsUploading(false)
-      setAnalysisError("Failed to upload photo. Please try again.")
-      setEntryMode("manual")
+    const optional = ["fiberGrams", "sugarGrams", "sodiumMg"] as const;
+    if (optional.some(key => manual[key] !== "" && (!Number.isInteger(Number(manual[key])) || Number(manual[key]) < 0))) {
+      setError("Optional nutrients must be non-negative whole numbers, or left blank."); return;
     }
+    if (items.length >= 20) { setError("A meal can contain up to 20 foods."); return; }
+    setItems(prev => [...prev, { name: manual.name.trim(), portionDescription: manual.portionDescription,
+      calories: Number(manual.calories), proteinGrams: Number(manual.proteinGrams), carbGrams: Number(manual.carbGrams),
+      fatGrams: Number(manual.fatGrams), fiberGrams: manual.fiberGrams === "" ? null : Number(manual.fiberGrams),
+      sugarGrams: manual.sugarGrams === "" ? null : Number(manual.sugarGrams),
+      sodiumMg: manual.sodiumMg === "" ? null : Number(manual.sodiumMg), originType: "manual" }]);
+    setManual(emptyManual()); setError("");
   }
 
-  const handleRetakePhoto = () => {
-    setPhotoPreview(null)
-    setPhotoReference(null)
-    const fileInput = document.getElementById("photo-capture") as HTMLInputElement
-    if (fileInput) fileInput.value = ""
-  }
-
-  const handleRemovePhoto = () => {
-    setPhotoPreview(null)
-    setPhotoReference(null)
-  }
-
-  // ─── Review mode handlers ─────────────────────────────────────────────────
-
-  const handleReviewItemChange = (id: string, field: keyof ReviewFoodItem, value: string | number) => {
-    setReviewItems(prev => prev.map(item => {
-      if (item.id !== id) return item
-      if (field === "quantity") {
-        return { ...item, quantity: typeof value === "number" ? value : parseFloat(value) || 0 }
-      }
-      return { ...item, [field]: value }
-    }))
-  }
-
-  const handleDeleteReviewItem = (id: string) => {
-    setReviewItems(prev => prev.filter(item => item.id !== id))
-  }
-
-  const handleAddReviewFood = () => {
-    if (!newFoodName.trim()) return
-    const qty = parseFloat(newFoodQuantity)
-    if (isNaN(qty) || qty <= 0) return
-
-    setReviewItems(prev => [...prev, {
-      id: Math.random().toString(),
-      name: newFoodName.trim(),
-      quantity: qty,
-      unit: newFoodUnit,
-      isEstimated: false,
-    }])
-
-    setNewFoodName("")
-    setNewFoodQuantity("")
-    setNewFoodUnit("g")
-    setIsAddingFood(false)
-  }
-
-  const handleCalculateNutrition = async () => {
-    // Validate
-    const invalid = reviewItems.find(item => !item.name.trim() || item.quantity <= 0)
-    if (invalid) {
-      setCalcError(`Please fix "${invalid.name || "unnamed item"}" — name and quantity are required.`)
-      return
-    }
-    if (reviewItems.length === 0) {
-      setCalcError("No food items to calculate. Add at least one item.")
-      return
-    }
-
-    setIsCalculating(true)
-    setCalcError(null)
-
-    try {
-      const { calculateNutritionAction } = await import("@/app/(authenticated)/client/food/actions")
-      const payload = reviewItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit,
-      }))
-
-      const res = await calculateNutritionAction(payload)
-
-      if (res.error) {
-        setCalcError(res.error)
-      } else if (res.items) {
-        // Merge dishName from reviewItems onto calculated results
-        const itemsWithDishName = res.items.map((item: CalculatedItem, idx: number) => ({
-          ...item,
-          dishName: reviewItems[idx]?.dishName || null,
-        }))
-        setCalculatedItems(itemsWithDishName)
-        setEntryMode("results")
-      }
-    } catch (e) {
-      setCalcError("Failed to calculate nutrition. Please try again.")
-    } finally {
-      setIsCalculating(false)
-    }
-  }
-
-  // ─── Results mode handlers ────────────────────────────────────────────────
-
-  const handleSaveFromResults = () => {
-    if (calculatedItems.length === 0) return
-
-    const finalItems = calculatedItems.map(item => ({
-      name: item.name,
-      portionDescription: item.portionDescription,
-      calories: item.calories,
-      proteinGrams: item.proteinGrams,
-      carbGrams: item.carbGrams,
-      fatGrams: item.fatGrams,
-      fiberGrams: item.fiberGrams,
-      sugarGrams: item.sugarGrams,
-      sodiumMg: item.sodiumMg,
-      originType: "ai_detected" as string,
-      groupName: item.dishName || null,
-    }))
-
-    onSave(mealType, finalItems, photoReference, "ai_assisted")
-  }
-
-  const handleBackToReview = () => {
-    setEntryMode("review")
-    setCalcError(null)
-  }
-
-  // ─── Computed values ──────────────────────────────────────────────────────
-
-  // Soft validation check (15% margin)
-  const macroCalories = (currentItem.proteinGrams * 4) + (currentItem.carbGrams * 4) + (currentItem.fatGrams * 9)
-  const isDiscrepant = currentItem.calories > 0 && Math.abs(macroCalories - currentItem.calories) / currentItem.calories > 0.15
-
-  const totalMealCalories = items.reduce((s, i) => s + i.calories, 0)
-
-  // Results totals
-  const resultsTotals = calculatedItems.reduce((acc, item) => ({
-    calories: acc.calories + item.calories,
-    protein: acc.protein + item.proteinGrams,
-    carbs: acc.carbs + item.carbGrams,
-    fat: acc.fat + item.fatGrams,
-    fiber: acc.fiber + item.fiberGrams,
-    sugar: acc.sugar + item.sugarGrams,
-    sodium: acc.sodium + item.sodiumMg,
-  }), { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 })
-
-  // ─── Render ───────────────────────────────────────────────────────────────
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
-        
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-[var(--color-neutral-200)] flex justify-between items-center bg-[var(--color-neutral-50)]">
-          <h2 className="font-bold text-lg text-[var(--color-neutral-800)]">
-            {entryMode === "review" ? "Review Detected Foods" : entryMode === "results" ? "Nutrition Summary" : "Log a Meal"}
-          </h2>
-          <button 
-            onClick={onClose}
-            className="text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)]"
-            disabled={isPending}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="p-6 overflow-y-auto flex-1 flex flex-col min-h-0">
-          
-          {/* ─── SELECT MODE ─── */}
-          {entryMode === "select" && (
-            <div className="flex-1 flex flex-col items-center justify-center space-y-6 px-4">
-              <button 
-                onClick={() => setEntryMode("photo")}
-                className="w-full bg-[var(--color-neutral-50)] hover:bg-purple-50 border-2 border-[var(--color-neutral-200)] hover:border-purple-300 rounded-2xl p-6 transition-all text-left group flex items-start gap-4"
-              >
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">📷</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[var(--color-neutral-800)] group-hover:text-purple-900">Scan with Photo</h3>
-                  <p className="text-sm text-[var(--color-neutral-500)] mt-1">Upload or take a photo. AI will identify foods and estimate portions for you to review.</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => setEntryMode("manual")}
-                className="w-full bg-[var(--color-neutral-50)] hover:bg-blue-50 border-2 border-[var(--color-neutral-200)] hover:border-blue-300 rounded-2xl p-6 transition-all text-left group flex items-start gap-4"
-              >
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">✍️</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[var(--color-neutral-800)] group-hover:text-blue-900">Enter Manually</h3>
-                  <p className="text-sm text-[var(--color-neutral-500)] mt-1">Type in your food and portion. We&apos;ll help calculate the macros.</p>
-                </div>
-              </button>
-            </div>
-          )}
-
-          {/* ─── PHOTO MODE ─── */}
-          {entryMode === "photo" && (
-            <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-              {!photoPreview ? (
-                <>
-                  <div className="w-full h-48 border-2 border-dashed border-[var(--color-neutral-300)] rounded-xl flex flex-col items-center justify-center bg-[var(--color-neutral-50)] text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-100)] transition-colors cursor-pointer" onClick={() => document.getElementById("photo-capture")?.click()}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mb-2 text-[var(--color-neutral-400)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    <span className="font-medium text-sm">Take Photo or Upload</span>
-                    <span className="text-xs text-[var(--color-neutral-400)] mt-1">Gallery, Camera, or File</span>
-                  </div>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    capture="environment" 
-                    id="photo-capture" 
-                    className="hidden" 
-                    onChange={handlePhotoUpload} 
-                  />
-                </>
-              ) : (
-                <div className="w-full flex flex-col items-center space-y-4">
-                  <div className="relative w-full max-w-sm rounded-xl overflow-hidden border border-[var(--color-neutral-200)] shadow-sm bg-black aspect-square">
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-contain" />
-                    {isUploading && (
-                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
-                        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="font-medium">Uploading & Optimizing...</p>
-                      </div>
-                    )}
-                    {isAnalyzing && (
-                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
-                        <div className="w-8 h-8 border-4 border-[var(--color-primary-500)] border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="font-medium">Analyzing your food...</p>
-                        <p className="text-sm text-white/70 mt-1">Detecting items & estimating portions</p>
-                      </div>
-                    )}
-                  </div>
-                  {!isUploading && !isAnalyzing && (
-                    <div className="flex gap-3 w-full max-w-sm">
-                      <Button variant="outline" className="flex-1" onClick={handleRetakePhoto}>Retake</Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ─── REVIEW MODE (NEW) ─── */}
-          {entryMode === "review" && (
-            <div className="space-y-5 flex-1 overflow-y-auto">
-
-              {/* Photo thumbnail */}
-              {photoPreview && (
-                <div className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
-                  <div className="w-12 h-12 rounded-md overflow-hidden bg-black shrink-0 border border-purple-200">
-                    <img src={photoPreview} alt="Meal" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-purple-900">AI Detected Foods</p>
-                    <p className="text-xs text-purple-600 mt-0.5">Review and edit before calculating nutrition</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Meal Type selector */}
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-neutral-700)] mb-2">Meal Type</label>
-                <div className="flex gap-2">
-                  {MEAL_TYPES.map(type => (
-                    <Button 
-                      key={type}
-                      variant={mealType === type ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => setMealType(type)}
-                      className="flex-1"
-                    >
-                      {type}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Food items table */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-[var(--color-neutral-800)]">Detected Foods</h3>
-                  <span className="text-xs text-[var(--color-neutral-500)]">{reviewItems.length} item{reviewItems.length !== 1 ? "s" : ""}</span>
-                </div>
-
-                {reviewItems.length === 0 && (
-                  <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm p-4 rounded-lg text-center">
-                    No food items detected. Use <strong>+ Add Food</strong> below to add items manually.
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  {reviewItems.map(item => (
-                    <div key={item.id} className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        {/* Food name */}
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            className="w-full rounded-md border border-[var(--color-neutral-200)] px-2.5 py-1.5 text-sm font-medium focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                            value={item.name}
-                            onChange={e => handleReviewItemChange(item.id, "name", e.target.value)}
-                          />
-                        </div>
-                        {/* Delete button */}
-                        <button
-                          onClick={() => handleDeleteReviewItem(item.id)}
-                          className="text-red-400 hover:text-red-600 p-1 shrink-0"
-                          title="Remove item"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        </button>
-                      </div>
-
-                      {/* Quantity + Unit row */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1">
-                          <input
-                            type="number"
-                            min="0"
-                            step="any"
-                            className="w-full rounded-md border border-[var(--color-neutral-200)] px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                            value={item.quantity || ""}
-                            onChange={e => handleReviewItemChange(item.id, "quantity", e.target.value)}
-                            placeholder="Qty"
-                          />
-                        </div>
-                        <select
-                          className="rounded-md border border-[var(--color-neutral-200)] px-2 py-1.5 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none bg-white"
-                          value={item.unit}
-                          onChange={e => handleReviewItemChange(item.id, "unit", e.target.value)}
-                        >
-                          {UNIT_OPTIONS.map(u => (
-                            <option key={u} value={u}>{u}</option>
-                          ))}
-                        </select>
-                        {item.isEstimated && (
-                          <Tooltip content="Quantity estimated by AI from photo">
-                            <Badge variant="secondary" className="bg-amber-50 text-amber-700 text-[10px] px-1.5 py-0 border-amber-200 shrink-0">
-                              ≈ est.
-                            </Badge>
-                          </Tooltip>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Add Food section */}
-              {!isAddingFood ? (
-                <button
-                  onClick={() => setIsAddingFood(true)}
-                  className="w-full py-2.5 border-2 border-dashed border-[var(--color-neutral-300)] rounded-lg text-sm font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] hover:border-[var(--color-primary-300)] hover:bg-[var(--color-primary-50)] transition-colors"
-                >
-                  + Add Food
-                </button>
-              ) : (
-                <div className="bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-lg p-3 space-y-3">
-                  <h4 className="text-sm font-semibold text-[var(--color-neutral-700)]">Add a Food Item</h4>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-[var(--color-neutral-300)] px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                    placeholder="Food name (e.g. Paneer)"
-                    value={newFoodName}
-                    onChange={e => setNewFoodName(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      className="flex-1 rounded-md border border-[var(--color-neutral-300)] px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                      placeholder="Quantity"
-                      value={newFoodQuantity}
-                      onChange={e => setNewFoodQuantity(e.target.value)}
-                    />
-                    <select
-                      className="rounded-md border border-[var(--color-neutral-300)] px-2 py-1.5 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none bg-white"
-                      value={newFoodUnit}
-                      onChange={e => setNewFoodUnit(e.target.value)}
-                    >
-                      {UNIT_OPTIONS.map(u => (
-                        <option key={u} value={u}>{u}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => { setIsAddingFood(false); setNewFoodName(""); setNewFoodQuantity(""); }}>
-                      Cancel
-                    </Button>
-                    <Button variant="primary" size="sm" className="flex-1" onClick={handleAddReviewFood} disabled={!newFoodName.trim() || !newFoodQuantity || parseFloat(newFoodQuantity) <= 0}>
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Error */}
-              {calcError && (
-                <div className="bg-red-50 border border-red-200 text-red-800 text-sm p-3 rounded-md">
-                  {calcError}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ─── RESULTS MODE (NEW) ─── */}
-          {entryMode === "results" && (
-            <div className="space-y-6 flex-1 overflow-y-auto">
-
-              {/* Meal Type selector */}
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-neutral-700)] mb-2">Meal Type</label>
-                <div className="flex gap-2">
-                  {MEAL_TYPES.map(type => (
-                    <Button 
-                      key={type}
-                      variant={mealType === type ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => setMealType(type)}
-                      className="flex-1"
-                    >
-                      {type}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Total Nutrition Summary Card */}
-              <div className="bg-gradient-to-br from-[var(--color-primary-50)] to-purple-50 border border-[var(--color-primary-200)] rounded-xl p-5">
-                <h3 className="font-bold text-[var(--color-primary-800)] mb-4">Total Nutrition</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/80 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-[var(--color-neutral-900)]">{resultsTotals.calories}</p>
-                    <p className="text-xs font-medium text-[var(--color-neutral-500)] mt-0.5">Calories (kcal)</p>
-                  </div>
-                  <div className="bg-white/80 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-blue-600">{resultsTotals.protein}g</p>
-                    <p className="text-xs font-medium text-[var(--color-neutral-500)] mt-0.5">Protein</p>
-                  </div>
-                  <div className="bg-white/80 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-amber-600">{resultsTotals.carbs}g</p>
-                    <p className="text-xs font-medium text-[var(--color-neutral-500)] mt-0.5">Carbohydrates</p>
-                  </div>
-                  <div className="bg-white/80 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-red-600">{resultsTotals.fat}g</p>
-                    <p className="text-xs font-medium text-[var(--color-neutral-500)] mt-0.5">Fat</p>
-                  </div>
-                </div>
-                {(resultsTotals.fiber > 0 || resultsTotals.sugar > 0) && (
-                  <div className="flex gap-4 mt-3 text-xs text-[var(--color-neutral-600)]">
-                    {resultsTotals.fiber > 0 && <span>Fiber: <strong>{resultsTotals.fiber}g</strong></span>}
-                    {resultsTotals.sugar > 0 && <span>Sugar: <strong>{resultsTotals.sugar}g</strong></span>}
-                    {resultsTotals.sodium > 0 && <span>Sodium: <strong>{resultsTotals.sodium}mg</strong></span>}
-                  </div>
-                )}
-              </div>
-
-              {/* Per-item breakdown */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-[var(--color-neutral-800)]">Food Breakdown</h3>
-                {calculatedItems.map((item, idx) => (
-                  <div key={idx} className="bg-white border border-[var(--color-neutral-200)] rounded-lg p-3">
-                    <div className="flex justify-between items-baseline mb-1.5">
-                      <p className="font-medium text-sm text-[var(--color-neutral-800)]">{item.name}</p>
-                      <span className="text-xs text-[var(--color-neutral-500)]">{item.portionDescription}</span>
-                    </div>
-                    <div className="flex gap-3 text-xs text-[var(--color-neutral-600)]">
-                      <span><strong>{item.calories}</strong> kcal</span>
-                      <span>P: <strong>{item.proteinGrams}g</strong></span>
-                      <span>C: <strong>{item.carbGrams}g</strong></span>
-                      <span>F: <strong>{item.fatGrams}g</strong></span>
-                      {item.fiberGrams > 0 && <span>Fiber: <strong>{item.fiberGrams}g</strong></span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Edit button */}
-              <button
-                onClick={handleBackToReview}
-                className="w-full text-sm text-[var(--color-primary-600)] hover:text-[var(--color-primary-800)] font-medium py-1"
-              >
-                ← Edit Foods & Recalculate
-              </button>
-            </div>
-          )}
-
-          {/* ─── MANUAL MODE (unchanged from original) ─── */}
-          {entryMode === "manual" && (
-            <div className="space-y-6 flex-1 overflow-y-auto pr-2">
-              
-              {photoPreview && (
-                <div className="bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-lg p-3 flex gap-4 items-center">
-                  <div className="w-16 h-16 rounded-md overflow-hidden bg-black shrink-0 border border-[var(--color-neutral-200)]">
-                    <img src={photoPreview} alt="Meal Thumbnail" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-[var(--color-neutral-800)]">Photo Attached</p>
-                    {isAiAssisted ? (
-                      <p className="text-xs text-[var(--color-primary-600)] mt-0.5 font-medium">✓ AI detected items from photo</p>
-                    ) : (
-                      <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">Please enter meal details manually.</p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      capture="environment" 
-                      id="photo-capture-replace" 
-                      className="hidden" 
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0]
-                        if (!file) return
-                        setIsUploading(true)
-                        const formData = new FormData()
-                        formData.append("photo", file)
-                        try {
-                          const { uploadTempFoodPhoto } = await import("@/app/(authenticated)/client/food/actions")
-                          const res = await uploadTempFoodPhoto(formData)
-                          if (res.error) {
-                            alert(res.error)
-                          } else if (res.tempUrl) {
-                            setPhotoReference(res.tempUrl)
-                            setPhotoPreview(res.tempUrl)
-                          }
-                        } catch (err) {
-                          alert("Failed to upload replacement photo")
-                        } finally {
-                          setIsUploading(false)
-                        }
-                      }} 
-                    />
-                    <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => document.getElementById("photo-capture-replace")?.click()} disabled={isUploading}>Replace</Button>
-                    <Button variant="secondary" size="sm" className="h-6 text-xs text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100" onClick={handleRemovePhoto} disabled={isUploading}>Remove</Button>
-                  </div>
-                </div>
-              )}
-
-              {analysisError && (
-                <div className="bg-red-50 border border-red-200 text-red-800 text-sm p-3 rounded-md">
-                  <strong>Analysis Error:</strong> {analysisError}
-                </div>
-              )}
-              {analysisEmpty && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3 rounded-md">
-                  We couldn&apos;t detect any food items in this photo. Please add them manually below.
-                </div>
-              )}
-
-              {/* Meal Type */}
-              <div>
-            <label className="block text-sm font-semibold text-[var(--color-neutral-700)] mb-2">Meal Type</label>
-            <div className="flex gap-2">
-              {MEAL_TYPES.map(type => (
-                <Button 
-                  key={type}
-                  variant={mealType === type ? "primary" : "outline"}
-                  size="sm"
-                  onClick={() => setMealType(type)}
-                  className="flex-1"
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-[var(--color-neutral-200)]" />
-
-          {/* Added Items List */}
-          {items.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-[var(--color-neutral-800)]">Added Items</h3>
-                <span className="text-sm font-medium text-[var(--color-neutral-600)]">{totalMealCalories} kcal total</span>
-              </div>
-              <div className="bg-[var(--color-neutral-50)] rounded-lg p-3 space-y-3 border border-[var(--color-neutral-200)]">
-                {items.map(item => (
-                  <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded border border-[var(--color-neutral-100)]">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm text-[var(--color-neutral-800)]">{item.name}</p>
-                        {item.originType === "ai_detected" && (
-                          <Tooltip content="Detected by AI from your photo">
-                            <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0 border-purple-200">AI Suggested</Badge>
-                          </Tooltip>
-                        )}
-                      </div>
-                      <p className="text-xs text-[var(--color-neutral-500)] mt-0.5">
-                        {item.calories} kcal · {item.proteinGrams}p · {item.carbGrams}c · {item.fatGrams}f
-                        {item.portionDescription ? ` (${item.portionDescription})` : ""}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <button 
-                        onClick={() => handleEditItem(item)}
-                        className="text-blue-500 hover:text-blue-700 text-xs font-medium p-2"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-red-500 hover:text-red-700 text-xs font-medium p-2"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Add New Item Form */}
-          <div className="space-y-4 bg-white border border-[var(--color-neutral-200)] rounded-lg p-4">
-            <h3 className="font-semibold text-[var(--color-neutral-800)]">Add Food Item</h3>
-            
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Food Name *</label>
-                <input 
-                  type="text" 
-                  className="w-full rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                  placeholder="e.g. Chicken Breast"
-                  value={currentItem.name}
-                  onChange={e => setCurrentItem({...currentItem, name: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Portion (Optional)</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    className="flex-1 rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                    placeholder="e.g. 1 medium piece, or 150g"
-                    value={currentItem.portionDescription}
-                    onChange={e => setCurrentItem({...currentItem, portionDescription: e.target.value})}
-                  />
-                  <Button 
-                    variant="outline" 
-                    className="shrink-0 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 hover:text-purple-800"
-                    onClick={handleAutoCalculate}
-                    disabled={!currentItem.name || isCalculatingText}
-                  >
-                    {isCalculatingText ? "Calculating..." : "✨ Auto-Calculate"}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Calories *</label>
-                  <input 
-                    type="number" min="0"
-                    className="w-full rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                    value={currentItem.calories || ""}
-                    onChange={e => setCurrentItem({...currentItem, calories: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Protein (g)</label>
-                  <input 
-                    type="number" min="0"
-                    className="w-full rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                    value={currentItem.proteinGrams || ""}
-                    onChange={e => setCurrentItem({...currentItem, proteinGrams: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Carbs (g)</label>
-                  <input 
-                    type="number" min="0"
-                    className="w-full rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                    value={currentItem.carbGrams || ""}
-                    onChange={e => setCurrentItem({...currentItem, carbGrams: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-[var(--color-neutral-600)] mb-1">Fat (g)</label>
-                  <input 
-                    type="number" min="0"
-                    className="w-full rounded-lg border border-[var(--color-neutral-300)] p-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-500)] outline-none"
-                    value={currentItem.fatGrams || ""}
-                    onChange={e => setCurrentItem({...currentItem, fatGrams: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-              </div>
-
-              {isDiscrepant && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-3 rounded-md flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                  <span>
-                    <strong>Check your math:</strong> The macros entered ({currentItem.proteinGrams}g P, {currentItem.carbGrams}g C, {currentItem.fatGrams}g F) add up to ~{macroCalories} kcal, but you entered {currentItem.calories} kcal. You can still add it, but it might skew your totals.
-                  </span>
-                </div>
-              )}
-
-              <Button 
-                variant="secondary" 
-                className="w-full"
-                onClick={handleAddItem}
-                disabled={!currentItem.name || currentItem.calories <= 0}
-              >
-                Add Item to Meal
-              </Button>
-            </div>
-          </div>
-        </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] flex justify-end gap-3 shrink-0">
-          {entryMode === "review" && (
-            <>
-              <Button variant="outline" onClick={() => setEntryMode("photo")} disabled={isCalculating}>
-                ← Back
-              </Button>
-              <Button variant="outline" onClick={() => { setEntryMode("manual"); setIsAiAssisted(false) }} disabled={isCalculating}>
-                Enter Manually Instead
-              </Button>
-              <Button 
-                variant="primary" 
-                onClick={handleCalculateNutrition}
-                disabled={reviewItems.length === 0 || isCalculating}
-              >
-                {isCalculating ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Calculating...
-                  </span>
-                ) : "Calculate Nutrition"}
-              </Button>
-            </>
-          )}
-
-          {entryMode === "results" && (
-            <>
-              <Button variant="outline" onClick={handleBackToReview} disabled={isPending}>
-                ← Edit Foods
-              </Button>
-              <Button 
-                variant="primary" 
-                onClick={handleSaveFromResults}
-                disabled={isPending || calculatedItems.length === 0}
-              >
-                {isPending ? "Saving..." : "Save Meal"}
-              </Button>
-            </>
-          )}
-
-          {entryMode === "manual" && (
-            <>
-              <Button variant="outline" onClick={onClose} disabled={isPending || isUploading}>Cancel</Button>
-              <Button 
-                variant="primary" 
-                onClick={handleSave} 
-                disabled={(items.length === 0 && (!currentItem.name || currentItem.calories <= 0)) || isPending || isUploading}
-              >
-                {isPending ? "Saving..." : "Save Meal"}
-              </Button>
-            </>
-          )}
-
-          {(entryMode === "select" || entryMode === "photo") && (
-            <Button variant="outline" onClick={onClose} disabled={isPending || isUploading || isAnalyzing}>Cancel</Button>
-          )}
-        </div>
-
+  return <Modal isOpen onClose={() => { if (!working) onClose(); }} title={initialData ? "Edit your meal" : "A little nourishment."}
+    description="A considered food journal, one meal at a time." className="meal-composer"
+    footer={<div className="composer-footer"><span>{items.length} food{items.length !== 1 ? "s" : ""} · {items.reduce((sum, item) => sum + item.calories, 0)} kcal</span><Button onClick={() => onSave(mealType, items, photo, photo ? "ai_assisted" : "manual")} disabled={!items.length || working} isLoading={isPending}>Save meal <ArrowRight size={16}/></Button></div>}>
+    <fieldset disabled={working} className="space-y-5 min-w-0">
+      <label className="composer-field">Meal<select value={mealType} onChange={event => setMealType(event.target.value)}>{["Breakfast", "Lunch", "Dinner", "Snack"].map(type => <option key={type}>{type}</option>)}</select></label>
+      <div className="composer-modes" role="group" aria-label="How to add food">
+        {([{ id: "search", label: "Food library", icon: Search }, { id: "photo", label: "Photo", icon: Camera }, { id: "manual", label: "Enter label", icon: PencilLine }] as const).map(tab =>
+          <button type="button" key={tab.id} aria-pressed={mode === tab.id} onClick={() => { setMode(tab.id); setError(""); }}><tab.icon size={17}/>{tab.label}</button>)}
       </div>
-    </div>
-  )
+      {mode === "photo" && <div className="space-y-4">
+        <label className="photo-drop"><span className="photo-drop-icon"><ScanLine size={28}/></span><strong>What’s on your plate?</strong><span>Upload a meal photo to suggest food names.</span><input type="file" accept="image/jpeg,image/png,image/webp,image/heic" aria-label="Upload meal photo" onChange={event => upload(event.target.files?.[0])}/><small>Up to 5 MB · Processed with Gemini for food suggestions.</small></label>
+        {photo && <img src={photo} alt="Your uploaded meal" className="composer-photo" width={120} height={120}/>}
+        <p className="nutrition-note">A photo cannot measure ingredients, cooking oils, or weight. Suggestions are estimates. Confirm a food record and a measured portion before saving.</p>
+        {suggestions.length > 0 && <div><p className="eyebrow section-label">SUGGESTED FOODS · NOT YET LOGGED</p><div className="food-suggestions">{suggestions.map((item, index) => <button key={index} onClick={() => { setMode("search"); setQuery(item.name); setAmount(""); setChosen(null); setResults([]); setSearched(false); }}><span>{item.name}<small>Visual estimate: {item.quantity} {item.unit}</small></span><Search size={17}/></button>)}</div></div>}
+      </div>}
+      {mode === "search" && <div className="space-y-4">
+        <div className="catalog-provider"><label className="composer-field">Library<select value={provider} onChange={e => { setProvider(e.target.value as FoodProvider); setResults([]); setChosen(null); setSearched(false); setError(""); }}><option value="openfoodfacts">Packaged foods · Open Food Facts</option><option value="usda">General foods · USDA</option></select></label></div>
+        <div className="catalog-search"><label className="sr-only" htmlFor="food-search">Food name or barcode</label><input id="food-search" value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); search(); } }} placeholder="Search a food, brand, or barcode…" maxLength={120}/><Button onClick={() => search()} disabled={query.trim().length < 2 || working} aria-label="Search food library"><Search size={18}/></Button></div>
+        <p className="nutrition-note">Choose the exact food and preparation. Database values can vary; compare the package label when available.</p>
+        {searched && !results.length && <div className="catalog-empty"><BookOpen size={26}/><strong>No complete record found</strong><p>Try a brand or barcode. If the library has no match, enter the package label. We won’t invent nutrition.</p></div>}
+        <div className="catalog-results">{results.map(food => <button key={food.provider + food.id} className={chosen?.id === food.id ? "selected" : ""} onClick={() => { setChosen(food); setConfirmed(false); setAmount(""); setUnit("g"); }}>
+          <span className="catalog-food-icon"><LeafIcon/></span><span><strong>{food.name}</strong><small>{food.brand || (food.provider === "usda" ? "USDA FoodData Central" : "Open Food Facts")}</small><small>{Math.round(food.nutrients.calories)} kcal / {food.basis === "100g" ? "100 g" : "100 g or mL — check label"}</small></span><span>{chosen?.id === food.id ? <Check size={18}/> : <Plus size={18}/>}</span>
+        </button>)}</div>
+        {chosen && <div className="portion-card">
+          <div className="flex justify-between gap-3"><strong>Confirm your portion</strong><a href={chosen.sourceUrl} target="_blank" rel="noreferrer" className="source-link">View source <ExternalLink size={13}/></a></div>
+          <div className="portion-inputs"><label className="composer-field">Measured amount<input type="number" min="0.1" max="10000" step="0.1" value={amount} onChange={e => { setAmount(e.target.value); setConfirmed(false); }} placeholder="e.g. 150"/></label><label className="composer-field">Unit<select value={unit} onChange={e => { setUnit(e.target.value as "g" | "ml"); setConfirmed(false); }}><option value="g">grams</option>{chosen.basis !== "100g" && <option value="ml">milliliters</option>}</select></label></div>
+          {preview && <div className="portion-nutrients">{Object.entries(metricLabels).map(([key, label]) => <div key={key}><small>{label}</small><strong>{preview[key as keyof Nutrients] ?? "Unknown"}</strong></div>)}</div>}
+          <label className="confirm-portion"><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)}/><span>I checked the food, preparation, and portion. The amount uses the same unit as the source label.</span></label>
+          <Button onClick={addChosen} disabled={!confirmed || !preview || working} className="w-full"><Plus size={16}/> Add to meal</Button>
+        </div>}
+        <p className="catalog-attribution">Data: <a href="https://world.openfoodfacts.org" target="_blank" rel="noreferrer">Open Food Facts</a> (<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">ODbL</a>) · <a href="https://fdc.nal.usda.gov" target="_blank" rel="noreferrer">USDA FoodData Central</a> (CC0). Missing optional nutrients remain unknown.</p>
+      </div>}
+      {mode === "manual" && <div className="space-y-4">
+        <p className="nutrition-note">Use the values for the portion you ate, from the package or your own recipe. These entries are labeled “User entered”.</p>
+        <label className="composer-field">Food name<input placeholder="e.g. Chicken Breast" value={manual.name} onChange={e => setManual({ ...manual, name: e.target.value })}/></label>
+        <label className="composer-field">Portion description<input placeholder="e.g. 150 g, cooked" value={manual.portionDescription} onChange={e => setManual({ ...manual, portionDescription: e.target.value })}/></label>
+        <div className="manual-nutrients">{Object.entries(metricLabels).map(([key, label], index) => <label className="composer-field" key={key}>{label}{index < 4 ? " *" : " · optional"}<input type="number" min="0" step="1" placeholder={index < 4 ? "From label" : "Unknown"} value={manual[key as keyof Nutrients]} onChange={e => setManual({ ...manual, [key]: e.target.value })}/></label>)}</div>
+        <Button onClick={addManual} variant="outline" className="w-full"><Plus size={16}/> Add label values</Button>
+      </div>}
+      {busy && <div className="composer-status" role="status"><LoaderCircle className="animate-spin" size={18}/> {mode === "photo" ? "Uploading and identifying foods…" : "Searching the food library…"}</div>}
+      {error && <div className="composer-error" role="alert">{error}</div>}
+      {items.length > 0 && <div className="meal-items"><p className="eyebrow section-label">IN THIS MEAL</p>{items.map((item,index) => <div key={index}><span><strong>{item.name}</strong><small>{item.portionDescription} · {item.calories} kcal · {item.catalogRef ? (item.catalogRef.provider === "usda" ? "USDA" : "Open Food Facts") : "User entered / previous record"}</small></span><button aria-label={`Remove ${item.name}`} onClick={() => setItems(items.filter((_, i) => i !== index))}><Trash2 size={17}/></button></div>)}</div>}
+    </fieldset>
+  </Modal>
 }
+function LeafIcon() { return <BookOpen size={18}/> }

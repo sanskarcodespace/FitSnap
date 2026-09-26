@@ -4,7 +4,7 @@ import { isCalendarDate } from "@/lib/food-validation";
 
 const mocks = vi.hoisted(() => ({
   create: vi.fn(), update: vi.fn(), findUnique: vi.fn(), water: vi.fn(),
-  verifyToken: vi.fn(),
+  verifyToken: vi.fn(), getFood: vi.fn(),
 }));
 vi.mock("@/lib/db/prisma", () => ({ default: {
   mealLog: { create: mocks.create, update: mocks.update, findUnique: mocks.findUnique },
@@ -13,6 +13,7 @@ vi.mock("@/lib/db/prisma", () => ({ default: {
 vi.mock("next/headers", () => ({ cookies: async () => ({
   get: () => ({ value: "test-token" }),
 }) }));
+vi.mock("@/lib/food/catalog", () => ({ getCatalogFood: mocks.getFood, searchCatalog: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth/jwt", () => ({ verifyToken: mocks.verifyToken }));
 vi.mock("@/lib/upload", () => ({ processAndStoreImage: vi.fn() }));
@@ -95,5 +96,21 @@ describe("food logging", () => {
   it("validates leap days", () => {
     expect(isCalendarDate("2024-02-29")).toBe(true);
     expect(isCalendarDate("2025-02-29")).toBe(false);
+  });
+});
+
+it("recalculates catalog nutrition on the server instead of trusting supplied macros", async () => {
+  mocks.getFood.mockResolvedValue({
+    id: "12345678", provider: "openfoodfacts", name: "Source oats", brand: null,
+    sourceUrl: "https://world.openfoodfacts.org/product/12345678", basis: "100g-or-100ml",
+    nutrients: { calories: 400, proteinGrams: 12, carbGrams: 60, fatGrams: 8, fiberGrams: null, sugarGrams: 2, sodiumMg: 5 },
+  });
+  const input = meal();
+  Object.assign(input.foodItems[0], { calories: 1, name: "Forged name",
+    catalogRef: { provider: "openfoodfacts", id: "12345678", amount: 50, unit: "g" } });
+  expect(await saveMealLog(input)).toMatchObject({ success: true });
+  expect(mocks.create.mock.calls[0][0].data.foodItems.create[0]).toMatchObject({
+    name: "Source oats", calories: 200, proteinGrams: 6, fiberGrams: null,
+    nutritionSource: "openfoodfacts", sourceFoodId: "12345678", portionAmount: 50, portionUnit: "g",
   });
 });

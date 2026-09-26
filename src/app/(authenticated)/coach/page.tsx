@@ -186,7 +186,7 @@ export default async function CoachDashboardPage(
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">
+          <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">
             Welcome, {user.coachProfile.businessName}
           </h1>
           <p className="text-[var(--color-neutral-600)] mt-1">

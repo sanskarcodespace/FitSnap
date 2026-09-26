@@ -69,8 +69,8 @@ export default function ContactPage() {
     <MarketingLayout>
       <div className="container mx-auto px-4 py-20 max-w-xl space-y-12">
         <div className="text-center space-y-4">
-          <h1 className="text-[var(--text-display-size)] font-bold">Request a Demo</h1>
-          <p className="text-[var(--text-body-lg-size)] text-[var(--color-neutral-600)]">
+          <h1 className="text-[length:var(--text-display-size)] font-bold">Request a Demo</h1>
+          <p className="text-[length:var(--text-body-lg-size)] text-[var(--color-neutral-600)]">
             We'd love to show you how FitSnap can transform your coaching business.
           </p>
         </div>
@@ -80,8 +80,8 @@ export default function ContactPage() {
             <div className="w-16 h-16 bg-[#bbf7d0] text-[var(--color-success-text)] rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h2 className="text-[var(--text-h3-size)] font-semibold text-[var(--color-success-text)]">Message Sent!</h2>
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-success-text)]">
+            <h2 className="text-[length:var(--text-h3-size)] font-semibold text-[var(--color-success-text)]">Message Sent!</h2>
+            <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-success-text)]">
               Thank you for reaching out. We've received your inquiry and will get back to you shortly to schedule a demo.
             </p>
             <div className="pt-4">

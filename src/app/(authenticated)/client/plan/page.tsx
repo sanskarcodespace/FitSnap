@@ -80,7 +80,7 @@ export default async function ClientPlanPage() {
     <div className="max-w-5xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-[var(--color-neutral-900)]">Your Plan</h1>
-        <p className="text-[var(--text-body-size)] text-[var(--color-neutral-600)] mt-2">
+        <p className="text-[length:var(--text-body-size)] text-[var(--color-neutral-600)] mt-2">
           Structured guidance from your coach to help you reach your goals.
         </p>
       </div>

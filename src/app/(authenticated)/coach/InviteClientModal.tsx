@@ -45,7 +45,7 @@ export function InviteClientModal({ isOpen, onClose }: { isOpen: boolean, onClos
               <Alert variant="success" className="bg-[var(--color-success-50)] text-[var(--color-success-900)] border-[var(--color-success-200)]">
                 Invitation created successfully!
               </Alert>
-              <div className="p-3 bg-gray-50 border rounded break-all text-[var(--text-body-sm-size)]">
+              <div className="p-3 bg-gray-50 border rounded break-all text-[length:var(--text-body-sm-size)]">
                 <strong>Dev URL:</strong> <br/>
                 <a href={successUrl} className="text-blue-600 underline" target="_blank" rel="noreferrer">
                   {successUrl}

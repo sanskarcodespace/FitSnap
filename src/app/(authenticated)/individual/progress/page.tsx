@@ -24,17 +24,17 @@ export default async function IndividualProgressPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="pb-2 border-b border-[var(--color-neutral-200)]">
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
           Progress
         </h1>
-        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
           Track your weight and body measurements over time.
         </p>
       </div>
 
       <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)]">
         <div className="flex justify-between items-start mb-6">
-          <h2 className="font-bold text-[var(--text-h3-size)] text-[var(--color-neutral-800)]">Goals & Baseline</h2>
+          <h2 className="font-bold text-[length:var(--text-h3-size)] text-[var(--color-neutral-800)]">Goals & Baseline</h2>
           <span className="bg-[var(--color-secondary-100)] text-[var(--color-secondary-700)] text-xs font-semibold px-3 py-1.5 rounded-full">
             {profile.goal}
           </span>

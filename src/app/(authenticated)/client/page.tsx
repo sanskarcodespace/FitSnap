@@ -116,13 +116,13 @@ export default async function ClientHomePage() {
   })
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="dashboard-home space-y-6 max-w-5xl mx-auto">
       {/* Greeting Header */}
-      <div className="pb-2">
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
-          Hi, {firstName}
+      <div className="dashboard-greeting"><p className="eyebrow section-label">YOUR DAILY EDIT</p>
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+          Make today yours, {firstName}.
         </h1>
-        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
           {todayFormatted}
         </p>
       </div>
@@ -133,7 +133,7 @@ export default async function ClientHomePage() {
         {/* Progress Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">Progress</h2>
+            <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)]">Progress</h2>
             <span className="bg-[var(--color-secondary-100)] text-[var(--color-secondary-700)] text-xs font-semibold px-2 py-1 rounded-full">
               {profile.goal}
             </span>
@@ -162,7 +162,7 @@ export default async function ClientHomePage() {
 
         {/* Report Card */}
         <section className="bg-[var(--color-primary-50)] rounded-xl p-5 shadow-sm border border-[var(--color-primary-200)] flex flex-col justify-center items-center text-center">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-primary-900)] mb-2">Monthly Report</h2>
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-primary-900)] mb-2">Monthly Report</h2>
           <p className="text-sm text-[var(--color-primary-700)] mb-4">
             View a comprehensive summary of your progress, nutrition, and habits.
           </p>
@@ -173,7 +173,7 @@ export default async function ClientHomePage() {
 
         {/* Food & Nutrition Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Food & Nutrition</h2>
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Food & Nutrition</h2>
           {summary.meals.length === 0 && summary.waterEntries.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
               <div className="w-12 h-12 rounded-full bg-[var(--color-secondary-50)] text-[var(--color-secondary-500)] flex items-center justify-center mb-3">
@@ -243,7 +243,7 @@ export default async function ClientHomePage() {
 
         {/* Today's Plan Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] flex flex-col">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Plan</h2>
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Today's Plan</h2>
           {!activeConnection ? (
             <div className="flex-1 flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-[var(--color-neutral-200)] rounded-lg">
               <p className="text-sm text-[var(--color-neutral-500)] px-4 mb-4">You are not currently connected to a coach.</p>
@@ -322,7 +322,7 @@ export default async function ClientHomePage() {
 
         {/* Your Coach Card */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-[var(--color-neutral-200)] md:col-span-2">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Your Coach</h2>
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4">Your Coach</h2>
           {activeConnection && activeConnection.coach ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

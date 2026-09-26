@@ -70,7 +70,7 @@ export default async function InviteAcceptancePage(props: { params: Promise<{ to
             <CardTitle className="text-xl text-[var(--color-primary-950)]">Active Session Found</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)] leading-relaxed">
+            <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-600)] leading-relaxed">
               You are currently logged into an account. To accept this invitation for <strong>{connection.invitedEmail}</strong>, you must log out first.
             </p>
             <LogoutButton />
@@ -121,14 +121,14 @@ export default async function InviteAcceptancePage(props: { params: Promise<{ to
         </CardHeader>
         <CardContent className="space-y-6">
           {connection.personalMessage && (
-            <div className="bg-[var(--color-primary-50)] p-4 rounded-lg italic text-[var(--color-primary-900)] text-[var(--text-body-sm-size)] shadow-sm">
+            <div className="bg-[var(--color-primary-50)] p-4 rounded-lg italic text-[var(--color-primary-900)] text-[length:var(--text-body-sm-size)] shadow-sm">
               "{connection.personalMessage}"
             </div>
           )}
 
           {viewType === "SIGNUP" && (
             <>
-              <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)] text-center">
+              <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-600)] text-center">
                 Create your client account to get started.
               </p>
               <InviteSignupForm 
@@ -141,7 +141,7 @@ export default async function InviteAcceptancePage(props: { params: Promise<{ to
 
           {viewType === "LOGIN" && (
             <>
-              <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)] text-center">
+              <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-600)] text-center">
                 Welcome back! Log in to connect with {coachName}.
               </p>
               <InviteLoginForm 
