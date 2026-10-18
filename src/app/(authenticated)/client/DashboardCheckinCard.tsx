@@ -40,7 +40,7 @@ export function DashboardCheckinCard({ todayCheckIn, basePath = "/client" }: Das
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-[var(--color-primary-600)]" />
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)]">
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)]">
             Daily Check-in
           </h2>
         </div>

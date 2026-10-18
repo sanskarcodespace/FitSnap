@@ -3,18 +3,19 @@
 import React from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { FoodLogClient } from "./FoodLogClient"
-import { FoodHistoryTab } from "./FoodHistoryTab"
+import dynamic from "next/dynamic"
+const FoodHistoryTab = dynamic(() => import("./FoodHistoryTab").then(module => module.FoodHistoryTab), { loading: () => <p role="status" className="p-6 text-sm">Loading your history…</p> })
 import type { NutritionSummary } from "@/lib/data/nutrition"
 
 export function FoodPageLayout({ date, summary, basePath = "/client" }: { date: string, summary: NutritionSummary, basePath?: string }) {
   return (
-    <div className="flex flex-col h-full max-w-3xl mx-auto py-8 space-y-6">
+    <div className="flex flex-col h-full max-w-5xl mx-auto py-2 space-y-6">
       <div>
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
-          Food & Nutrition
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+          Your food journal
         </h1>
-        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
-          Track what you eat and see your macro breakdown.
+        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+          A clearer picture of your plate. A little more intention in your day.
         </p>
       </div>
 

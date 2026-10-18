@@ -153,10 +153,7 @@ export async function moveImage(oldPathRef: string, newFolder: string, clientId:
         Key: newKey,
       }))
       
-      await s3.send(new DeleteObjectCommand({
-        Bucket: bucket,
-        Key: oldKey,
-      }))
+      // Keep the staged object until the meal has been committed successfully.
 
       // Return the new URL path
       return `/api/private-images/${newFolder}/${clientId}/${filename}`
@@ -173,7 +170,7 @@ export async function moveImage(oldPathRef: string, newFolder: string, clientId:
 
     try {
       await fs.mkdir(finalDir, { recursive: true })
-      await fs.rename(oldFilePath, newFilePath)
+      await fs.copyFile(oldFilePath, newFilePath)
       return `/api/private-images/${newFolder}/${clientId}/${filename}`
     } catch (e) {
       console.error("Local move error", e)

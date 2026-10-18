@@ -50,8 +50,8 @@ export function EmptyState({ className, icon, title, description, action, ...pro
       {...props}
     >
       {icon && <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)]">{icon}</div>}
-      <h3 className="mb-1 text-[var(--text-h4-size)] font-medium text-[var(--foreground)]">{title}</h3>
-      {description && <p className="mb-4 text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] max-w-sm">{description}</p>}
+      <h3 className="mb-1 text-[length:var(--text-h4-size)] font-medium text-[var(--foreground)]">{title}</h3>
+      {description && <p className="mb-4 text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] max-w-sm">{description}</p>}
       {action && <div>{action}</div>}
     </div>
   )

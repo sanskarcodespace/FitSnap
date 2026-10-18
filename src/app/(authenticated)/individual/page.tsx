@@ -60,13 +60,13 @@ export default async function IndividualHomePage() {
   })
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="dashboard-home space-y-6 max-w-5xl mx-auto">
       {/* Greeting Header */}
-      <div className="pb-2">
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
-          Hi, {firstName}
+      <div className="dashboard-greeting"><p className="eyebrow section-label">YOUR DAILY EDIT</p>
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+          Make today yours, {firstName}.
         </h1>
-        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
           {todayFormatted}
         </p>
       </div>
@@ -77,7 +77,7 @@ export default async function IndividualHomePage() {
         {/* Progress Card */}
         <section className="bg-[var(--card-background)] rounded-[1.25rem] p-6 shadow-[var(--shadow-md)] border border-black/5 flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] flex items-center gap-2">
+            <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)] flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[var(--color-primary-600)]" />
               Progress
             </h2>
@@ -112,7 +112,7 @@ export default async function IndividualHomePage() {
           <div className="w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center mb-3 shadow-sm">
             <Share2 className="w-6 h-6 text-[var(--color-primary-600)]" />
           </div>
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-primary-900)] mb-2">Share Progress</h2>
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-primary-900)] mb-2">Share Progress</h2>
           <p className="text-sm text-[var(--color-primary-700)] mb-4">
             Share your achievements with friends, family, or on social media.
           </p>
@@ -123,7 +123,7 @@ export default async function IndividualHomePage() {
 
         {/* Food & Nutrition Card */}
         <section className="bg-[var(--card-background)] rounded-[1.25rem] p-6 shadow-[var(--shadow-md)] border border-black/5 flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5">
-          <h2 className="font-bold text-[var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4 flex items-center gap-2">
+          <h2 className="font-bold text-[length:var(--text-h4-size)] text-[var(--color-neutral-800)] mb-4 flex items-center gap-2">
             <Utensils className="w-5 h-5 text-[var(--color-secondary-600)]" />
             Food & Nutrition
           </h2>

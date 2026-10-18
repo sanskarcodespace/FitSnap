@@ -253,7 +253,7 @@ export function IndividualOnboardingForm({ initialData = {} }: { initialData?: a
       {step === 4 && (
         <div className="space-y-4 animate-in fade-in">
           <h2 className="text-xl font-bold">Add a Profile Photo</h2>
-          <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-600)]">Optional. Personalize your profile.</p>
+          <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-600)]">Optional. Personalize your profile.</p>
           
           <div className="flex flex-col items-center gap-4 py-4">
             {photoPreview ? (

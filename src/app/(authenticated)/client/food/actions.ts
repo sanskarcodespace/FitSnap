@@ -5,8 +5,9 @@ import { cookies } from "next/headers"
 import { verifyToken } from "@/lib/auth/jwt"
 import prisma from "@/lib/db/prisma"
 import { processAndStoreImage } from "@/lib/upload"
-import fs from "fs/promises"
-import path from "path"
+import { getCatalogFood, searchCatalog } from "@/lib/food/catalog"
+import { scaleNutrients, type CatalogReference, type FoodProvider } from "@/lib/food/catalog-types"
+import { isCalendarDate, isNutritionAmount } from "@/lib/food-validation"
 import { checkRateLimit } from "@/lib/rate-limit"
 
 async function getClientSession() {
@@ -60,7 +61,7 @@ export async function analyzeFoodPhoto(photoReference: string) {
     return { error: "Too many analysis requests. Please try again later." }
   }
 
-  if (!photoReference || !photoReference.includes(`/api/private-images/temp/${session.userId}/`)) {
+  if (!photoReference || !photoReference.startsWith(`/api/private-images/temp/${session.userId}/`)) {
     return { error: "Invalid photo reference or unauthorized" }
   }
 
@@ -76,72 +77,20 @@ export async function analyzeFoodPhoto(photoReference: string) {
     return { success: true, items: detectedItems }
   } catch (error: any) {
     console.error("AI Analysis error:", error)
-    return { error: "Analysis failed" }
+    return { error: process.env.GEMINI_API_KEY ? "Photo recognition is unavailable. Search the food library instead." : "Photo recognition is not configured yet. Search the food library instead." }
   }
 }
 
-export async function analyzeFoodTextAction(name: string, portion: string) {
+export async function searchFoodLibrary(query: string, provider: FoodProvider) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
-
-  // Rate Limiting Check (share limit with image analysis or separate, let's keep separate but similar)
-  const rateLimit = checkRateLimit(`analyze_food_text_${session.userId}`, { windowMs: 60000, max: 10 })
-  if (!rateLimit.success) {
-    return { error: "Too many analysis requests. Please try again later." }
+  if (!checkRateLimit("food-search-" + session.userId, { windowMs: 60000, max: 8 }).success) {
+    return { error: "Please wait a minute before searching again." }
   }
-
-  if (!name || name.trim().length === 0) {
-    return { error: "Food name is required" }
-  }
-
   try {
-    const { analyzeFoodText } = await import("@/lib/ai/foodRecognition")
-    const item = await analyzeFoodText(name, portion || "1 serving")
-    if (!item) {
-      return { error: "Could not calculate macros for this food." }
-    }
-    return { success: true, item }
-  } catch (error: any) {
-    console.error("AI Text Analysis error:", error)
-    return { error: "Analysis failed" }
-  }
-}
-
-export async function calculateNutritionAction(
-  items: { name: string; quantity: number; unit: string }[]
-) {
-  const session = await getClientSession()
-  if (!session) return { error: "Unauthorized" }
-
-  const rateLimit = checkRateLimit(`calc_nutrition_${session.userId}`, { windowMs: 60000, max: 10 })
-  if (!rateLimit.success) {
-    return { error: "Too many requests. Please try again later." }
-  }
-
-  if (!items || items.length === 0) {
-    return { error: "No food items provided." }
-  }
-
-  // Validate each item
-  for (const item of items) {
-    if (!item.name || item.name.trim().length === 0) {
-      return { error: "All food items must have a name." }
-    }
-    if (typeof item.quantity !== "number" || item.quantity <= 0) {
-      return { error: `Invalid quantity for "${item.name}". Must be a positive number.` }
-    }
-    if (!item.unit || item.unit.trim().length === 0) {
-      return { error: `Missing unit for "${item.name}".` }
-    }
-  }
-
-  try {
-    const { calculateNutritionForItems } = await import("@/lib/ai/foodRecognition")
-    const results = await calculateNutritionForItems(items)
-    return { success: true, items: results }
-  } catch (error: any) {
-    console.error("Nutrition calculation error:", error)
-    return { error: "Failed to calculate nutrition. Please try again." }
+    return { foods: await searchCatalog(query, provider) }
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Food search is unavailable. Please try again." }
   }
 }
 
@@ -160,7 +109,10 @@ export type SaveMealInput = {
     proteinGrams: number;
     carbGrams: number;
     fatGrams: number;
-    fiberGrams: number;
+    fiberGrams: number | null;
+    sugarGrams?: number | null;
+    sodiumMg?: number | null;
+    catalogRef?: CatalogReference;
   }[];
 }
 
@@ -168,90 +120,77 @@ export async function saveMealLog(input: SaveMealInput) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
 
-  if (!input.date || !input.mealType || !input.foodItems || input.foodItems.length === 0) {
-    return { error: "Missing required fields" }
+  if (!input || !Array.isArray(input.foodItems) || input.foodItems.length === 0 || input.foodItems.length > 20) {
+    return { error: "Please add at least one food item." }
+  }
+  if (!isCalendarDate(input.date)) return { error: "Please choose a valid date." }
+  if (!["Breakfast", "Lunch", "Dinner", "Snack"].includes(input.mealType)) {
+    return { error: "Please choose a valid meal type." }
+  }
+
+  for (const item of input.foodItems) {
+    if (!item || typeof item.name !== "string" || !item.name.trim()) {
+      return { error: "All food items must have a name." }
+    }
+    const requiredAmounts = [item.calories, item.proteinGrams, item.carbGrams, item.fatGrams]
+    const optionalAmounts = [item.fiberGrams, item.sugarGrams, item.sodiumMg]
+    if (!requiredAmounts.every(isNutritionAmount) ||
+        !optionalAmounts.every(value => value == null || isNutritionAmount(value))) {
+      return { error: "Nutrition values must be non-negative whole numbers." }
+    }
   }
 
   try {
-    let finalPhotoReference = input.photoReference
-
-    // If the photoReference points to the temp directory, we must move it to the permanent directory
-    if (finalPhotoReference && finalPhotoReference.includes("/api/private-images/temp/")) {
-      const { moveImage } = await import("@/lib/upload")
-      const newRef = await moveImage(finalPhotoReference, "food", session.userId)
-      if (newRef) {
-        finalPhotoReference = newRef
-      } else {
-        finalPhotoReference = null
-      }
+    const existing = input.id ? await prisma.mealLog.findUnique({ where: { id: input.id } }) : null
+    if (input.id && (!existing || existing.clientId !== session.userId)) return { error: "Not found or unauthorized" }
+    let finalPhotoReference = input.photoReference ?? null
+    if (finalPhotoReference && !new RegExp(`^/api/private-images/(temp|food)/${session.userId}/[a-zA-Z0-9_-]+\\.jpg$`).test(finalPhotoReference)) {
+      return { error: "Invalid photo reference." }
     }
-
-    let mealId = input.id
-
-    if (mealId) {
-      // Update existing meal
-      const existing = await prisma.mealLog.findUnique({ where: { id: mealId } })
-      if (!existing || existing.clientId !== session.userId) return { error: "Not found or unauthorized" }
-      
-      // If photo changed/removed, clean up the old one
-      if (existing.photoReference && existing.photoReference !== finalPhotoReference) {
-        const { deleteImage } = await import("@/lib/upload")
-        await deleteImage(existing.photoReference, session.userId)
+    // Never trust client-supplied macros or source metadata for a database record.
+    const foodItems = await Promise.all(input.foodItems.map(async item => {
+      const ref = item.catalogRef
+      if (ref) {
+        const food = await getCatalogFood(ref.provider, ref.id)
+        const nutrients = scaleNutrients(food, ref.amount, ref.unit)
+        return { ...nutrients, name: food.name, portionDescription: `${ref.amount} ${ref.unit}`,
+          originType: "database", groupName: item.groupName || null,
+          nutritionSource: food.provider, sourceFoodId: food.id, sourceUrl: food.sourceUrl,
+          portionAmount: ref.amount, portionUnit: ref.unit }
       }
-
-      await prisma.mealLog.update({
-        where: { id: mealId },
-        data: {
-          date: input.date,
-          mealType: input.mealType,
-          photoReference: finalPhotoReference,
-          // Only update source if explicitly provided, otherwise keep existing
-          ...(input.source ? { source: input.source } : {}),
-          foodItems: {
-            deleteMany: {}, // replace all items
-            create: input.foodItems.map(item => ({
-              name: item.name,
-              portionDescription: item.portionDescription || null,
-              originType: item.originType || "manual",
-              groupName: item.groupName || null,
-              calories: item.calories,
-              proteinGrams: item.proteinGrams,
-              carbGrams: item.carbGrams,
-              fatGrams: item.fatGrams,
-              fiberGrams: item.fiberGrams,
-            }))
-          }
-        }
-      })
-    } else {
-      // Create new meal
-      const meal = await prisma.mealLog.create({
-        data: {
-          clientId: session.userId,
-          date: input.date,
-          mealType: input.mealType,
-          source: input.source || "manual",
-          photoReference: finalPhotoReference,
-          foodItems: {
-            create: input.foodItems.map(item => ({
-              name: item.name,
-              portionDescription: item.portionDescription || null,
-              originType: item.originType || "manual",
-              groupName: item.groupName || null,
-              calories: item.calories,
-              proteinGrams: item.proteinGrams,
-              carbGrams: item.carbGrams,
-              fatGrams: item.fatGrams,
-              fiberGrams: item.fiberGrams,
-            }))
-          }
-        }
-      })
-      mealId = meal.id
+      return { name: item.name.trim(), portionDescription: item.portionDescription || null,
+        originType: "manual", groupName: item.groupName || null,
+        calories: item.calories, proteinGrams: item.proteinGrams, carbGrams: item.carbGrams,
+        fatGrams: item.fatGrams, fiberGrams: item.fiberGrams ?? null,
+        sugarGrams: item.sugarGrams ?? null, sodiumMg: item.sodiumMg ?? null,
+        nutritionSource: "user", sourceFoodId: null, sourceUrl: null, portionAmount: null, portionUnit: null }
+    }))
+    if (finalPhotoReference?.startsWith("/api/private-images/temp/")) {
+      const { moveImage } = await import("@/lib/upload")
+      const moved = await moveImage(finalPhotoReference, "food", session.userId)
+      if (!moved) return { error: "Could not attach the photo. Please upload it again." }
+      finalPhotoReference = moved
+    }
+    const data = { date: input.date, mealType: input.mealType, photoReference: finalPhotoReference,
+      source: finalPhotoReference ? "ai_assisted" : "manual" }
+    const meal = input.id
+      ? await prisma.mealLog.update({ where: { id: input.id }, data: { ...data, foodItems: { deleteMany: {}, create: foodItems } } })
+      : await prisma.mealLog.create({ data: { ...data, clientId: session.userId, foodItems: { create: foodItems } } })
+    const mealId = input.id || meal.id
+    if (input.photoReference?.startsWith("/api/private-images/temp/")) {
+      const { deleteImage } = await import("@/lib/upload")
+      await deleteImage(input.photoReference, session.userId)
+    }
+    // Keep the old photo until the database write has succeeded.
+    if (existing?.photoReference && existing.photoReference !== finalPhotoReference) {
+      const { deleteImage } = await import("@/lib/upload")
+      await deleteImage(existing.photoReference, session.userId)
     }
 
     revalidatePath("/client/food")
-    revalidatePath("/", "layout")
+    revalidatePath("/individual/food")
+    revalidatePath("/client")
+    revalidatePath("/individual")
     
     return { success: true, id: mealId }
   } catch (error) {
@@ -274,18 +213,16 @@ export async function deleteMealLog(mealId: string) {
       return { error: "Not found or unauthorized" }
     }
 
-    // Clean up associated photo file
+    await prisma.mealLog.delete({ where: { id: mealId } })
     if (meal.photoReference) {
       const { deleteImage } = await import("@/lib/upload")
       await deleteImage(meal.photoReference, session.userId)
     }
 
-    await prisma.mealLog.delete({
-      where: { id: mealId }
-    })
-
     revalidatePath("/client/food")
-    revalidatePath("/", "layout")
+    revalidatePath("/individual/food")
+    revalidatePath("/client")
+    revalidatePath("/individual")
 
     return { success: true }
   } catch (error) {
@@ -298,6 +235,11 @@ export async function addWater(date: string, amountMl: number) {
   const session = await getClientSession()
   if (!session) return { error: "Unauthorized" }
 
+  if (!isCalendarDate(date)) return { error: "Please choose a valid date." }
+  if (!isNutritionAmount(amountMl) || amountMl === 0) {
+    return { error: "Water amount must be a positive whole number of milliliters." }
+  }
+
   try {
     await prisma.waterLogEntry.create({
       data: {
@@ -308,7 +250,9 @@ export async function addWater(date: string, amountMl: number) {
     })
 
     revalidatePath("/client/food")
-    revalidatePath("/", "layout")
+    revalidatePath("/individual/food")
+    revalidatePath("/client")
+    revalidatePath("/individual")
 
     return { success: true }
   } catch (error) {
@@ -342,7 +286,9 @@ export async function removeLastWater(date: string) {
     })
 
     revalidatePath("/client/food")
-    revalidatePath("/", "layout")
+    revalidatePath("/individual/food")
+    revalidatePath("/client")
+    revalidatePath("/individual")
 
     return { success: true }
   } catch (error) {

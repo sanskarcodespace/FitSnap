@@ -22,7 +22,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
-      <div className="flex p-8 items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-[var(--color-neutral-200)] text-[var(--color-neutral-500)] text-[var(--text-body-sm-size)]">
+      <div className="flex p-8 items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-[var(--color-neutral-200)] text-[var(--color-neutral-500)] text-[length:var(--text-body-sm-size)]">
         {emptyMessage}
       </div>
     )
@@ -69,10 +69,10 @@ export function DataTable<T>({
           >
             {columns.map((col, i) => (
               <div key={i} className="flex justify-between items-start space-x-2">
-                <span className="text-[var(--text-caption-size)] font-medium text-[var(--color-neutral-500)]">
+                <span className="text-[length:var(--text-caption-size)] font-medium text-[var(--color-neutral-500)]">
                   {col.header}
                 </span>
-                <div className="text-[var(--text-body-sm-size)] text-right">
+                <div className="text-[length:var(--text-body-sm-size)] text-right">
                   {col.cell ? col.cell(item) : (item as any)[col.accessorKey as string]}
                 </div>
               </div>

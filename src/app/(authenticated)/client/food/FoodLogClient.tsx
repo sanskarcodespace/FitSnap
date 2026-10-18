@@ -4,7 +4,8 @@ import React, { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DailyFoodLogView } from "@/components/food/DailyFoodLogView"
-import { AddMealDialog } from "@/components/food/AddMealDialog"
+import dynamic from "next/dynamic"
+const AddMealDialog = dynamic(() => import("@/components/food/AddMealDialog").then(module => module.AddMealDialog), { ssr: false })
 import { saveMealLog, deleteMealLog, addWater, removeLastWater, SaveMealInput } from "./actions"
 
 import type { NutritionSummary } from "@/lib/data/nutrition"
@@ -73,11 +74,11 @@ export function FoodLogClient({
         source,
         foodItems: items
       })
-      
+
       if (result.success) {
         setIsAddMealOpen(false)
         setEditingMeal(null)
-        router.refresh()
+
       } else {
         alert(result.error || "Failed to save meal")
       }
@@ -94,11 +95,11 @@ export function FoodLogClient({
 
   const handleDeleteMeal = (mealId: string) => {
     if (!confirm("Are you sure you want to delete this meal?")) return
-    
+
     startTransition(async () => {
       const result = await deleteMealLog(mealId)
       if (result.success) {
-        router.refresh()
+
       } else {
         alert(result.error || "Failed to delete meal")
       }
@@ -109,7 +110,7 @@ export function FoodLogClient({
     startTransition(async () => {
       const result = await addWater(date, amountMl)
       if (result.success) {
-        router.refresh()
+
       } else {
         alert(result.error || "Failed to add water")
       }
@@ -120,7 +121,7 @@ export function FoodLogClient({
     startTransition(async () => {
       const result = await removeLastWater(date)
       if (result.success) {
-        router.refresh()
+
       } else {
         alert(result.error || "Failed to remove water")
       }
@@ -133,24 +134,24 @@ export function FoodLogClient({
 
   return (
     <div className={`flex flex-col h-full mx-auto space-y-6 ${!hideHeader ? 'max-w-3xl py-8' : ''}`}>
-      
+
       {!hideHeader && (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+            <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
               Food & Nutrition
             </h1>
-            <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+            <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
               Track what you eat and see your macro breakdown.
             </p>
           </div>
-          
+
           <Button onClick={() => { setEditingMeal(null); setIsAddMealOpen(true); }} disabled={isPending}>
             + Log a Meal
           </Button>
         </div>
       )}
-      
+
       {hideHeader && (
         <div className="flex justify-end">
           <Button onClick={() => { setEditingMeal(null); setIsAddMealOpen(true); }} disabled={isPending}>
@@ -173,7 +174,7 @@ export function FoodLogClient({
       </div>
 
       {/* Data View */}
-      <DailyFoodLogView 
+      <DailyFoodLogView
         summary={summary}
         onDeleteMeal={handleDeleteMeal}
         onEditMeal={handleEditMeal}
@@ -182,13 +183,13 @@ export function FoodLogClient({
         isPending={isPending}
       />
 
-      <AddMealDialog 
+      {isAddMealOpen && <AddMealDialog
         isOpen={isAddMealOpen}
         onClose={() => { setIsAddMealOpen(false); setEditingMeal(null); }}
         onSave={handleSaveMeal}
         isPending={isPending}
         initialData={editingMeal}
-      />
+      />}
     </div>
   )
 }

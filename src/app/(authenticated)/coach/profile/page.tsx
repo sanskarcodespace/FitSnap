@@ -43,7 +43,7 @@ export default async function CoachProfilePage() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-24">
       <div className="flex items-center justify-between">
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">Profile</h1>
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-950)]">Profile</h1>
         <Link href="/coach/profile/edit">
           <Button variant="secondary">Edit Profile</Button>
         </Link>
@@ -61,7 +61,7 @@ export default async function CoachProfilePage() {
               />
               <div>
                 <h2 className="text-xl font-bold">{profile.businessName}</h2>
-                <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">{user.email}</p>
+                <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">{user.email}</p>
               </div>
             </CardContent>
           </Card>
@@ -72,9 +72,9 @@ export default async function CoachProfilePage() {
             </CardHeader>
             <CardContent>
               {profile.credentials ? (
-                <p className="text-[var(--text-body-sm-size)]">{profile.credentials}</p>
+                <p className="text-[length:var(--text-body-sm-size)]">{profile.credentials}</p>
               ) : (
-                <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-400)] italic">Not added yet.</p>
+                <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-400)] italic">Not added yet.</p>
               )}
             </CardContent>
           </Card>
@@ -102,13 +102,13 @@ export default async function CoachProfilePage() {
             </CardHeader>
             <CardContent>
               {profile.bio ? (
-                <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-700)] whitespace-pre-line leading-relaxed">
+                <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-700)] whitespace-pre-line leading-relaxed">
                   {profile.bio}
                 </p>
               ) : (
                 <div className="p-8 text-center bg-[var(--color-neutral-50)] rounded-lg border border-dashed border-[var(--color-neutral-300)]">
-                  <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No bio added yet.</p>
-                  <Link href="/coach/profile/edit" className="text-[var(--color-primary-600)] text-[var(--text-body-sm-size)] font-medium hover:underline mt-2 inline-block">
+                  <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)]">No bio added yet.</p>
+                  <Link href="/coach/profile/edit" className="text-[var(--color-primary-600)] text-[length:var(--text-body-sm-size)] font-medium hover:underline mt-2 inline-block">
                     Add your bio
                   </Link>
                 </div>

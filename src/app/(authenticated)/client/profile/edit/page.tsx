@@ -25,10 +25,10 @@ export default async function ClientEditProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="pb-2 border-b border-[var(--color-neutral-200)]">
-        <h1 className="text-[var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
+        <h1 className="text-[length:var(--text-h2-size)] font-bold text-[var(--color-primary-800)]">
           Edit Profile
         </h1>
-        <p className="text-[var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
+        <p className="text-[length:var(--text-body-sm-size)] text-[var(--color-neutral-500)] mt-1">
           Update your personal details and goals.
         </p>
       </div>

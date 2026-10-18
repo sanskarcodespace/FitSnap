@@ -174,7 +174,7 @@ export async function revokeAllOtherSessions() {
 
 export async function updateClientNotificationPreferences(formData: FormData) {
   const session = await getSession()
-  if (!session || session.role !== "CLIENT") return { error: "Unauthorized" }
+  if (!session || (session.role !== "CLIENT" && session.role !== "INDIVIDUAL")) return { error: "Unauthorized" }
 
   const habitReminderEnabled = formData.get("habitReminderEnabled") === "true"
   const habitReminderHour = parseInt(formData.get("habitReminderHour")?.toString() || "9", 10)
@@ -194,6 +194,7 @@ export async function updateClientNotificationPreferences(formData: FormData) {
   })
 
   revalidatePath("/client/settings")
+  revalidatePath("/individual/settings")
   return { success: true }
 }
 
@@ -218,7 +219,7 @@ export async function updateCoachNotificationPreferences(formData: FormData) {
 
 export async function autoCaptureClientTimezone(timezone: string) {
   const session = await getSession()
-  if (!session || session.role !== "CLIENT") return { error: "Unauthorized" }
+  if (!session || (session.role !== "CLIENT" && session.role !== "INDIVIDUAL")) return { error: "Unauthorized" }
 
   const profile = await prisma.clientProfile.findUnique({ where: { userId: session.userId } })
   if (profile && profile.timezone === "UTC") {
@@ -227,5 +228,6 @@ export async function autoCaptureClientTimezone(timezone: string) {
       data: { timezone }
     })
     revalidatePath("/client/settings")
+  revalidatePath("/individual/settings")
   }
 }

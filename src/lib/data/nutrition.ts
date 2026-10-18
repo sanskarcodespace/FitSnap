@@ -40,28 +40,14 @@ export async function getDailyNutritionSummary(
     connectionWhere.coachId = requestingCoachId;
   }
 
-  const activeConnection = await prisma.coachClientConnection.findFirst({
-    where: connectionWhere,
-    include: {
-      nutritionTarget: true
-    }
-  });
-
+  const [activeConnection, meals, waterEntries] = await Promise.all([
+    prisma.coachClientConnection.findFirst({ where: connectionWhere, include: { nutritionTarget: true } }),
+    prisma.mealLog.findMany({ where: { clientId, date }, include: { foodItems: true }, orderBy: { createdAt: "asc" } }),
+    prisma.waterLogEntry.findMany({ where: { clientId, date }, orderBy: { loggedAt: "asc" } }),
+  ]);
   const hasActiveConnection = !!activeConnection;
   const target = activeConnection?.nutritionTarget || null;
   const hasTarget = !!target;
-
-  // 2. Fetch Meals & Water
-  const meals = await prisma.mealLog.findMany({
-    where: { clientId, date },
-    include: { foodItems: true },
-    orderBy: { createdAt: 'asc' }
-  });
-
-  const waterEntries = await prisma.waterLogEntry.findMany({
-    where: { clientId, date },
-    orderBy: { loggedAt: 'asc' }
-  });
 
   // 3. Aggregate totals
   const consumedTotals = {
@@ -81,7 +67,7 @@ export async function getDailyNutritionSummary(
       consumedTotals.protein += item.proteinGrams;
       consumedTotals.carbs += item.carbGrams;
       consumedTotals.fat += item.fatGrams;
-      consumedTotals.fiber += item.fiberGrams;
+      consumedTotals.fiber += item.fiberGrams ?? 0;
       consumedTotals.sugar += item.sugarGrams || 0;
       consumedTotals.sodium += item.sodiumMg || 0;
     });
@@ -287,7 +273,7 @@ export async function getNutritionHistorySummary(
         dayConsumed.protein += item.proteinGrams;
         dayConsumed.carbs += item.carbGrams;
         dayConsumed.fat += item.fatGrams;
-        dayConsumed.fiber += item.fiberGrams;
+        dayConsumed.fiber += item.fiberGrams ?? 0;
         dayConsumed.sugar += item.sugarGrams || 0;
         dayConsumed.sodium += item.sodiumMg || 0;
       });
